@@ -36,6 +36,8 @@ private:
 
     // Step1: Person detection
     void detectPersons();
+    BackgroundSubtractorMOG2 backgroundSubstractor;
+    Mat fgMask;
     vector<Rect> personsFound;
 
     void addVisualInfos();
