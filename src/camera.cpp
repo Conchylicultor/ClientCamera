@@ -28,6 +28,7 @@ Camera::Camera(string pathVid, bool record) :
     cout << nameVid << " loaded" << endl;
 
     namedWindow(nameVid);
+    moveWindow(nameVid, (nbCams-1)*640 ,0);
 
     // Sometimes the first frame is unreacheable
     while(!success)
@@ -83,7 +84,9 @@ void Camera::play()
     {
         //resize(frame, frame, Size(RED_WIDTH,RED_HEIGHT));
 
+        // Pipeline
         detectPersons();
+        tracking();
         addVisualInfos();
 
         imshow(nameVid, frame);
