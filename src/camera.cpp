@@ -105,7 +105,7 @@ void Camera::detectPersons()
     cv::findContours(fgWithShadows,contoursWithShadows, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
     // Second step: without shadow
-    Mat fgWithoutShadows = fgMask.clone();
+    Mat fgWithoutShadows = fgMask; // No clone
     threshold(fgWithoutShadows, fgWithoutShadows, 254, 255, THRESH_BINARY);
 
     std::vector<std::vector<cv::Point> > contoursWithoutShadows;
@@ -123,11 +123,13 @@ void Camera::detectPersons()
         if(captureRect.height > DETECT_MIN_HEIGHT && cv::contourArea(*iter) > DETECT_MIN_AREA)
         {
             personsFound.push_back(captureRect);
-
-            Mat persMask(fgWithoutShadows, captureRect);
-            imshow("Detected: " + nameVid, persMask);
         }
     }
+}
+
+void Camera::tracking()
+{
+
 }
 
 void Camera::addVisualInfos()
@@ -137,5 +139,8 @@ void Camera::addVisualInfos()
     {
         Rect r = personsFound[i];
         rectangle(frame, r.tl(), r.br(), cv::Scalar(0,255,0), 2);
+
+        Mat persMask(fgMask, r);
+        imshow("Detected: " + nameVid, persMask);
     }
 }

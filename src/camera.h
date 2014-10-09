@@ -40,6 +40,9 @@ private:
     Mat fgMask;
     vector<Rect> personsFound;
 
+    // Step2: Tracking
+    void tracking();
+
     void addVisualInfos();
 };
 
