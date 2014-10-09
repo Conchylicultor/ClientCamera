@@ -279,6 +279,7 @@ void Camera::addVisualInfos()
         //imshow("Detected: " + nameVid, persMask);
     }*/
 
+    // Plot a frame above the detected persons
     for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; iter++)
     {
         (*iter)->plot(frame);
