@@ -3,6 +3,8 @@
 // Arbitrary parametters
 #define DETECT_MIN_HEIGHT 100
 #define DETECT_MIN_AREA 1000
+#define DETECT_MIN_FINAL_HEIGHT 60
+#define DETECT_MIN_FINAL_WIDTH 20
 
 int Camera::nbCams = 0;
 
@@ -116,13 +118,42 @@ void Camera::detectPersons()
     cv::drawContours(fgWithoutShadows,contoursWithoutShadows,-1,cv::Scalar(255), CV_FILLED);
 
     // Third step: extraction
+    fgWithoutShadows = fgMask.clone();
+
     for(std::vector<std::vector<cv::Point> >::iterator iter = contoursWithShadows.begin() ; iter != contoursWithShadows.end(); iter++)
     {
         Rect captureRect = cv::boundingRect(*iter);
         // Filters (minimum height and area)
         if(captureRect.height > DETECT_MIN_HEIGHT && cv::contourArea(*iter) > DETECT_MIN_AREA)
         {
-            personsFound.push_back(captureRect);
+            // Working only on the small roi
+            Mat persMask(fgWithoutShadows, captureRect);
+
+            Point captureMinTl(persMask.size().width, persMask.size().height);
+            Point captureMinBr(0, 0);// Inverted rect
+            Rect captureCurrentRect;
+
+            // Computing the big bounding box
+            std::vector<std::vector<cv::Point> > contoursPers;
+            cv::findContours(persMask, contoursPers, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+            for(std::vector<std::vector<cv::Point> >::iterator iterContoursPers = contoursPers.begin() ; iterContoursPers != contoursPers.end(); iterContoursPers++)
+            {
+                captureCurrentRect = cv::boundingRect(*iterContoursPers);
+                captureMinTl.x = std::min(captureMinTl.x, captureCurrentRect.x);
+                captureMinTl.y = std::min(captureMinTl.y, captureCurrentRect.y);
+                captureMinBr.x = std::max(captureMinBr.x, captureCurrentRect.br().x);
+                captureMinBr.y = std::max(captureMinBr.y, captureCurrentRect.br().y);
+            }
+
+            // Ultimate filter: without shadow
+            if(captureMinBr.x > DETECT_MIN_FINAL_WIDTH && captureMinBr.y > DETECT_MIN_FINAL_HEIGHT)
+            {
+                captureRect.x += captureMinTl.x;
+                captureRect.y += captureMinTl.y;
+                captureRect.width  = captureMinBr.x - captureMinTl.x;
+                captureRect.height = captureMinBr.y - captureMinTl.y;
+                personsFound.push_back(captureRect);
+            }
         }
     }
 }
@@ -137,10 +168,9 @@ void Camera::addVisualInfos()
     // Plot a frame above the detected persons
     for (size_t i=0; i < personsFound.size(); i++)
     {
-        Rect r = personsFound[i];
-        rectangle(frame, r.tl(), r.br(), cv::Scalar(0,255,0), 2);
+        rectangle(frame, personsFound[i], cv::Scalar(0,255,0), 2);
 
-        Mat persMask(fgMask, r);
-        imshow("Detected: " + nameVid, persMask);
+        //Mat persMask(fgMask, personsFound[i]);
+        //imshow("Detected: " + nameVid, persMask);
     }
 }
