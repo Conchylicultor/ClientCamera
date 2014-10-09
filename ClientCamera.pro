@@ -6,9 +6,11 @@ CONFIG -= qt
 QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += src/main.cpp \
-    src/camera.cpp
+    src/camera.cpp \
+    src/silhouette.cpp
 
 LIBS += `pkg-config opencv --libs`
 
 HEADERS += \
-    src/camera.h
+    src/camera.h \
+    src/silhouette.h

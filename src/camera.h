@@ -4,6 +4,8 @@
 #include <iostream>
 #include "opencv2/opencv.hpp"
 
+#include "silhouette.h"
+
 #define REID_WIDTH 640
 #define REID_HEIGHT 480
 
@@ -35,7 +37,7 @@ private:
 
     Mat frame;
 
-    // Pipeline
+    // ----- Pipeline -----
 
     // Step1: Person detection
     void detectPersons();
@@ -45,6 +47,7 @@ private:
 
     // Step2: Tracking
     void tracking();
+    list<Silhouette*> listCurrentSilhouette;
 
     void addVisualInfos();
 };

@@ -174,7 +174,65 @@ void Camera::detectPersons()
 
 void Camera::tracking()
 {
+    // Reset update statuts
+    for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; iter++)
+    {
+        (*iter)->setUpdated(false);// For the next loop
+    }
 
+    // For each person found
+    for (size_t i=0; i < personsFound.size(); i++)
+    {
+        // Algorithm:
+        // We looking the closest existing silhouette which exist in the list
+        // If found, we associate this silhouette to the current detected person
+        // If not, we add it to the list
+
+        // Looking for the closest silhouette
+        int minDist = 0;
+        Silhouette *closestSilhouette = 0;
+        for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; iter++)
+        {
+            if(!(*iter)->getUpdated())// The silhouette has not been computed yet
+            {
+                if(closestSilhouette == 0) // First element
+                {
+                    closestSilhouette = *iter;
+                    minDist = closestSilhouette->distanceFrom(personsFound[i]);
+                }
+                else
+                {
+                    // Is there a closest element ?
+                    if((*iter)->distanceFrom(personsFound[i]) < minDist)
+                    {
+                        closestSilhouette = *iter;// We update the closest silhouette
+                        minDist = (*iter)->distanceFrom(personsFound[i]);
+                    }
+                }
+            }
+        }
+
+        // Validating
+        if(closestSilhouette == 0) // New element
+        {
+            Silhouette *silh = new Silhouette;
+            silh->addPos(personsFound[i]);
+            silh->setUpdated(true);
+            listCurrentSilhouette.push_back(silh);
+        }
+        else if(minDist < 60) // Person close => same person
+        {
+            closestSilhouette->addPos(personsFound[i]);
+            closestSilhouette->setUpdated(true);
+        }
+        else // Person far => New element
+        {
+            Silhouette *silh = new Silhouette;
+            silh->addPos(personsFound[i]);
+            silh->setUpdated(true);
+            listCurrentSilhouette.push_back(silh);
+        }
+    }
 }
 
 void Camera::addVisualInfos()
