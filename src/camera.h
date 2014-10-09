@@ -19,6 +19,8 @@ public:
     void grab();
     void play();
 
+    void togglePause();
+
 private:
     static int nbCams;
     string nameVid;
@@ -29,6 +31,7 @@ private:
     bool recording;
 
     bool success;
+    bool pause;
 
     Mat frame;
 

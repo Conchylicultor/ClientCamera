@@ -62,8 +62,18 @@ int main()
             listCam.at(i)->play();
         }
 
-        if(waitKey(50) >= 0)
-            break;
+        char key = waitKey(50);
+        if(key == 32) // Spacebar
+        {
+            for(size_t i = 0 ; i < listCam.size() ; ++i)
+            {
+                listCam.at(i)->togglePause();
+            }
+        }
+        else if(key >= 0) // Other key
+        {
+            break; // Exit
+        }
     }
 
     for(size_t i = 0 ; i < listCam.size() ; ++i)

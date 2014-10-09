@@ -11,6 +11,7 @@ int Camera::nbCams = 0;
 Camera::Camera(string pathVid, bool record) :
     recording(record),
     success(false),
+    pause(false),
     backgroundSubstractor()
 {
     cap.open(pathVid);
@@ -62,7 +63,12 @@ Camera::~Camera()
 
 void Camera::grab()
 {
-    if (!cap.read(frame))
+    if (pause)
+    {
+        success=false;
+        return;
+    }
+    else if (!cap.read(frame))
     {
         std::cout << "Unable to retrieve frame from " << nameVid << std::endl;
         success=false;
@@ -87,6 +93,11 @@ void Camera::play()
             writer << frame;
         }
     }
+}
+
+void Camera::togglePause()
+{
+    pause = !pause;
 }
 
 void Camera::detectPersons()
