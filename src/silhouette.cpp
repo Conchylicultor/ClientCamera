@@ -1,18 +1,13 @@
 #include "silhouette.h"
 
 Silhouette::Silhouette() :
-    updated(false)
+    updated(false),
+    gostLife(-1)
 {
-}
-
-bool Silhouette::getUpdated() const
-{
-    return updated;
-}
-
-void Silhouette::setUpdated(bool value)
-{
-    updated = value;
+    // Choose a random color for the person
+    color[0] = std::rand() % 255;
+    color[1] = std::rand() % 255;
+    color[2] = std::rand() % 255;
 }
 
 int Silhouette::distanceFrom(const Rect &rect) const
@@ -32,3 +27,29 @@ void Silhouette::addPos(const Rect &newPos)
 
     // Delete first if list too long
 }
+
+void Silhouette::plot(Mat frame)
+{
+    rectangle(frame, previousPos.back(), color, 2);
+}
+
+bool Silhouette::getUpdated() const
+{
+    return updated;
+}
+
+void Silhouette::setUpdated(bool value)
+{
+    updated = value;
+}
+
+int Silhouette::getGostLife() const
+{
+    return gostLife;
+}
+
+void Silhouette::setGostLife(int value)
+{
+    gostLife = value;
+}
+

@@ -5,6 +5,7 @@
 #define DETECT_MIN_AREA 1000
 #define DETECT_MIN_FINAL_HEIGHT 60
 #define DETECT_MIN_FINAL_WIDTH 20
+#define DETECT_MIN_DIST_CLOSE 60
 
 int Camera::nbCams = 0;
 
@@ -220,7 +221,7 @@ void Camera::tracking()
             silh->setUpdated(true);
             listCurrentSilhouette.push_back(silh);
         }
-        else if(minDist < 60) // Person close => same person
+        else if(minDist < DETECT_MIN_DIST_CLOSE) // Person close => same person
         {
             closestSilhouette->addPos(personsFound[i]);
             closestSilhouette->setUpdated(true);
@@ -233,16 +234,53 @@ void Camera::tracking()
             listCurrentSilhouette.push_back(silh);
         }
     }
+
+    for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; )
+    {
+        if(!(*iter)->getUpdated())// The silhouette has not been computed yet
+        {
+            // 1st case, the silhouette was a false positiv
+            // 2nd case, the silhouette has disappear
+            if((*iter)->getGostLife() == -1)
+            {
+                (*iter)->setGostLife(7);
+            }
+            else if((*iter)->getGostLife() > 0) // The silhouette is lost (but not removed yet)
+            {
+                (*iter)->setGostLife((*iter)->getGostLife() - 1);
+            }
+            else if((*iter)->getGostLife() == 0) // Time out. The silhouette is removed (/!\ validity of the iterator)
+            {
+                delete (*iter);
+                iter = listCurrentSilhouette.erase(iter);
+                continue;
+            }
+        }
+        else
+        {
+            // New apparence, it is not a false positiv
+            if((*iter)->getGostLife() != -1) // Else it is not a gost (Retrouve, ouf!)
+            {
+                (*iter)->setGostLife(-1);
+            }
+        }
+        iter++;
+    }
 }
 
 void Camera::addVisualInfos()
 {
     // Plot a frame above the detected persons
-    for (size_t i=0; i < personsFound.size(); i++)
+    /*for (size_t i=0; i < personsFound.size(); i++)
     {
         rectangle(frame, personsFound[i], cv::Scalar(0,255,0), 2);
 
         //Mat persMask(fgMask, personsFound[i]);
         //imshow("Detected: " + nameVid, persMask);
+    }*/
+
+    for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; iter++)
+    {
+        (*iter)->plot(frame);
     }
 }
