@@ -13,9 +13,10 @@ class Silhouette
 public:
     Silhouette();
 
-    int distanceFrom (const cv::Rect &rect) const;
+    int distanceFrom(const cv::Rect &rect) const;
     void addPos(const Rect &newPos);
-    void plot(Mat frame);
+    void plot(Mat &frame);
+    void updateFeatures(Mat &frame, Mat &fgMask);
 
     bool getUpdated() const;
     void setUpdated(bool value);
@@ -26,12 +27,16 @@ public:
 private:
     Scalar color;
 
-    bool updated;
-
     list<cv::Rect> previousPos;
 
+    // ----- For tracking -----
+
+    // Tell if the silhouette is visible in the current frame
+    bool updated;
     // If the person is present but not detected
     int gostLife;
+
+    // ----- For feature extraction -----
 };
 
 #endif // SILHOUETTE_H

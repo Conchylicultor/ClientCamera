@@ -49,6 +49,9 @@ private:
     void tracking();
     list<Silhouette*> listCurrentSilhouette;
 
+    // Step3: Features extraction
+    void computeFeatures();
+
     void addVisualInfos();
 };
 

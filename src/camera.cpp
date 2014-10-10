@@ -5,7 +5,7 @@
 #define DETECT_MIN_AREA 1000
 #define DETECT_MIN_FINAL_HEIGHT 60
 #define DETECT_MIN_FINAL_WIDTH 20
-#define DETECT_MIN_DIST_CLOSE 60
+#define DETECT_MIN_DIST_CLOSE 80
 
 int Camera::nbCams = 0;
 
@@ -88,6 +88,7 @@ void Camera::play()
         // Pipeline
         detectPersons();
         tracking();
+        computeFeatures();
         addVisualInfos();
 
         imshow(nameVid, frame);
@@ -235,7 +236,8 @@ void Camera::tracking()
         }
     }
 
-    for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; )
+    // Update the silhouettes
+    for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; ) // /!\ Warning: No incrementation at the end (elements can be deleted)
     {
         if(!(*iter)->getUpdated())// The silhouette has not been computed yet
         {
@@ -268,9 +270,22 @@ void Camera::tracking()
     }
 }
 
+void Camera::computeFeatures()
+{
+    // For each silhouette
+    for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; iter++)
+    {
+        if((*iter)->getUpdated())// The silhouette is present on the current frame
+        {
+            // TODO: Other conditions to extract the features ?
+            (*iter)->updateFeatures(frame, fgMask);
+        }
+    }
+}
+
 void Camera::addVisualInfos()
 {
-    // Plot a frame above the detected persons
+    // Plot a frame above the detected persons (detection level)
     /*for (size_t i=0; i < personsFound.size(); i++)
     {
         rectangle(frame, personsFound[i], cv::Scalar(0,255,0), 2);
@@ -279,7 +294,7 @@ void Camera::addVisualInfos()
         //imshow("Detected: " + nameVid, persMask);
     }*/
 
-    // Plot a frame above the detected persons
+    // Plot a frame above the detected persons (tracking level)
     for(list<Silhouette*>::iterator iter = listCurrentSilhouette.begin() ; iter != listCurrentSilhouette.end() ; iter++)
     {
         (*iter)->plot(frame);

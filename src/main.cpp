@@ -44,14 +44,27 @@ int main()
     cam1 = new Camera("/home/etienne/__A__/Data/Recordings/02_Vid_1.mp4",recording);
     cam2 = new Camera("/home/etienne/__A__/Data/Recordings/02_Vid_2.mp4",recording);
     cam3 = new Camera("/home/etienne/__A__/Data/Recordings/02_Vid_3.mp4",recording);
+    //cam1 = new Camera("http://root:azerty@192.168.100.168/axis-cgi/mjpg/video.cgi?;type=.mjpg",recording);
+    //cam2 = new Camera("http://root:azerty@192.168.100.169/axis-cgi/mjpg/video.cgi?;type=.mjpg",recording);
+    //cam3 = new Camera("http://root:azerty@192.168.100.170/axis-cgi/mjpg/video.cgi?;type=.mjpg",recording);
 
     vector<Camera*> listCam;
     listCam.push_back(cam1);
     listCam.push_back(cam2);
     listCam.push_back(cam3);
 
+    // Clear the buffer of each cam
+    /*for(int i = 0 ; i < 150 ; ++i)
+    {
+        for(int j = 0 ; j < listCam.size() ; ++j)
+        {
+            listCam.at(j)->grab();
+        }
+    }*/
+
     while(1)
     {
+        // Computation
         for(size_t i = 0 ; i < listCam.size() ; ++i)
         {
             listCam.at(i)->grab();
@@ -62,6 +75,7 @@ int main()
             listCam.at(i)->play();
         }
 
+        // Events
         char key = waitKey(50);
         if(key == 32) // Spacebar
         {

@@ -28,9 +28,19 @@ void Silhouette::addPos(const Rect &newPos)
     // Delete first if list too long
 }
 
-void Silhouette::plot(Mat frame)
+void Silhouette::plot(Mat &frame)
 {
     rectangle(frame, previousPos.back(), color, 2);
+}
+
+void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
+{
+    // TODO: Other conditions to extract the features ?
+    Mat persImg  = frame (previousPos.back());
+    Mat persMask = fgMask(previousPos.back());
+
+    imshow("persImg", persImg);
+    imshow("persMask", persMask);
 }
 
 bool Silhouette::getUpdated() const
