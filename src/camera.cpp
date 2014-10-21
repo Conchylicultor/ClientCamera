@@ -140,6 +140,8 @@ void Camera::detectPersons()
     {
         Rect captureRect = cv::boundingRect(*iter);
         // Filters (minimum height and area)
+        // TODO: Aspect ratio to limit false positives ?
+        // Add a perspective coefficient to make the minimum height can be proportional to the place on the camera
         if(captureRect.height > DETECT_MIN_HEIGHT && cv::contourArea(*iter) > DETECT_MIN_AREA)
         {
             // Working only on the small roi
