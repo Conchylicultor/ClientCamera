@@ -26,6 +26,10 @@ void Silhouette::addPos(const Rect &newPos)
     previousPos.push_back(newPos);
 
     // Delete first if list too long
+    if(previousPos.size() > 300)
+    {
+        cout << "Warning: Silhouette reach big size !" << endl;
+    }
 }
 
 void Silhouette::plot(Mat &frame)
