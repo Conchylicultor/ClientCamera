@@ -41,9 +41,9 @@ int main()
     Camera *cam2 = 0;
     Camera *cam3 = 0;
 
-    cam1 = new Camera("/home/etienne/__A__/Data/Recordings/02_Vid_1.mp4",recording);
-    cam2 = new Camera("/home/etienne/__A__/Data/Recordings/02_Vid_2.mp4",recording);
-    cam3 = new Camera("/home/etienne/__A__/Data/Recordings/02_Vid_3.mp4",recording);
+    cam1 = new Camera("/home/etienne/__A__/Data/Recordings/01_Vid_1.mp4",recording);
+    cam2 = new Camera("/home/etienne/__A__/Data/Recordings/01_Vid_2.mp4",recording);
+    cam3 = new Camera("/home/etienne/__A__/Data/Recordings/01_Vid_3.mp4",recording);
     //cam1 = new Camera("http://root:azerty@192.168.100.168/axis-cgi/mjpg/video.cgi?;type=.mjpg",recording);
     //cam2 = new Camera("http://root:azerty@192.168.100.169/axis-cgi/mjpg/video.cgi?;type=.mjpg",recording);
     //cam3 = new Camera("http://root:azerty@192.168.100.170/axis-cgi/mjpg/video.cgi?;type=.mjpg",recording);

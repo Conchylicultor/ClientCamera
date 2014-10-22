@@ -25,6 +25,9 @@ public:
     void setGostLife(int value);
 
 private:
+    static int nbIds;
+    int id;
+
     Scalar color;
 
     list<cv::Rect> previousPos;
@@ -35,6 +38,9 @@ private:
     bool updated;
     // If the person is present but not detected
     int gostLife;
+
+    // ----- For save -----
+    list< pair<Mat, Mat> > extFrames;
 
     // ----- For feature extraction -----
 };

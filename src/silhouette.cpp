@@ -1,9 +1,16 @@
 #include "silhouette.h"
 
+#define RECORD_TRACE 0
+
+int Silhouette::nbIds = 0;
+
 Silhouette::Silhouette() :
     updated(false),
     gostLife(-1)
 {
+    nbIds++;
+    id = nbIds;
+
     // Choose a random color for the person
     color[0] = std::rand() % 255;
     color[1] = std::rand() % 255;
@@ -45,6 +52,24 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
 
     imshow("persImg", persImg);
     imshow("persMask", persMask);
+
+    // Save on disk >> For the database
+    extFrames.push_back(pair<Mat, Mat>(persImg, persMask));
+
+    // We only save if the person has been recorded more than 10 times (frames)
+    if(RECORD_TRACE)
+    {
+        const int minToSave = 10;
+        if(extFrames.size() > minToSave)
+        {
+            // Filter: aspect ratio
+            if(extFrames.back().first.rows / extFrames.back().first.cols > 1.4)
+            {
+                imwrite("/home/etienne/__A__/Data/Traces/" + std::to_string(id) + "_" + std::to_string(extFrames.size()) + ".png", extFrames.back().first);
+                imwrite("/home/etienne/__A__/Data/Traces/" + std::to_string(id) + "_" + std::to_string(extFrames.size()) + "_mask.png", extFrames.back().second);
+            }
+        }
+    }
 }
 
 bool Silhouette::getUpdated() const
