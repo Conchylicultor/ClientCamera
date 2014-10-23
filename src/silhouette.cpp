@@ -1,5 +1,8 @@
 #include "silhouette.h"
 
+#include <iostream>
+#include <fstream>
+
 #define RECORD_TRACE 0
 
 int Silhouette::nbIds = 0;
@@ -56,17 +59,64 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
     // Save on disk >> For the database
     extFrames.push_back(pair<Mat, Mat>(persImg, persMask));
 
-    // We only save if the person has been recorded more than 10 times (frames)
     if(RECORD_TRACE)
     {
+        // We only save if the person has been recorded more than 10 times (frames)
         const int minToSave = 10;
         if(extFrames.size() > minToSave)
         {
             // Filter: aspect ratio
             if(extFrames.back().first.rows / extFrames.back().first.cols > 1.4)
             {
-                imwrite("/home/etienne/__A__/Data/Traces/" + std::to_string(id) + "_" + std::to_string(extFrames.size()) + ".png", extFrames.back().first);
-                imwrite("/home/etienne/__A__/Data/Traces/" + std::to_string(id) + "_" + std::to_string(extFrames.size()) + "_mask.png", extFrames.back().second);
+                // Compute image id
+                string imageId = std::to_string(id) + "_" + std::to_string(extFrames.size());
+
+                // Save image
+                imwrite("/home/etienne/__A__/Data/Traces/" + imageId + ".png", extFrames.back().first);
+                imwrite("/home/etienne/__A__/Data/Traces/" + imageId + "_mask.png", extFrames.back().second);
+
+                list<string> contentTraces;
+
+                // Write into file
+                ifstream fileTracesIn;
+                fileTracesIn.open ("/home/etienne/__A__/Data/Traces/traces.txt");
+                if(fileTracesIn.is_open())
+                {
+                    // Read entire file
+                    for(string line; std::getline(fileTracesIn, line); )
+                    {
+                        contentTraces.push_back(line);
+                    }
+                    fileTracesIn.close();
+                }
+
+                // Add content
+                string titleId = "----- " + std::to_string(id) + " -----";
+                list<string>::iterator iter = std::find(contentTraces.begin(), contentTraces.end(), titleId);
+
+                if(iter == contentTraces.end())
+                {
+                    contentTraces.push_back(titleId);
+                    contentTraces.push_back(imageId);
+                }
+                else
+                {
+                    iter++;
+                    contentTraces.insert(iter, imageId);
+                }
+
+                // Write file
+                ofstream fileTracesOut;
+                fileTracesOut.open ("/home/etienne/__A__/Data/Traces/traces.txt");
+                if(!fileTracesOut.is_open())
+                {
+                    cout << "Error: No file trace out" << endl;
+                }
+                for(string line : contentTraces)
+                {
+                    fileTracesOut << line << endl;
+                }
+                fileTracesOut.close();
             }
         }
     }
