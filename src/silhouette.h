@@ -43,6 +43,12 @@ private:
     list< pair<Mat, Mat> > extFrames;
 
     // ----- For feature extraction -----
+
+    // Color histogram
+    void histRGB(Mat &frame, Mat &fgMask);
+    Mat hist1;
+    Mat hist2;
+    Mat hist3;
 };
 
 #endif // SILHOUETTE_H

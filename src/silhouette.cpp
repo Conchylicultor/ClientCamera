@@ -5,6 +5,8 @@
 
 #define RECORD_TRACE 0
 
+#define HIST_SIZE 100
+
 int Silhouette::nbIds = 0;
 
 Silhouette::Silhouette() :
@@ -49,18 +51,28 @@ void Silhouette::plot(Mat &frame)
 
 void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
 {
-    // TODO: Other conditions to extract the features ?
+    // (?) Other conditions to extract the features ?
     Mat persImg  = frame (previousPos.back());
     Mat persMask = fgMask(previousPos.back());
 
     imshow("persImg", persImg);
     imshow("persMask", persMask);
 
-    // Save on disk >> For the database
-    extFrames.push_back(pair<Mat, Mat>(persImg, persMask));
+    // Extract features
 
+    // TODO: Segmentation
+
+    // RGB histogram
+    histRGB(frame, fgMask);
+
+    // LBP (Local binary patern): Texture information
+
+    // Save on disk (for built the database)
     if(RECORD_TRACE)
     {
+        // Save on disk >> For the database
+        extFrames.push_back(pair<Mat, Mat>(persImg, persMask));
+
         // We only save if the person has been recorded more than 10 times (frames)
         const int minToSave = 10;
         if(extFrames.size() > minToSave)
@@ -90,7 +102,7 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
                     fileTracesIn.close();
                 }
 
-                // Add content
+                // Add content: insert lines
                 string titleId = "----- " + std::to_string(id) + " -----";
                 list<string>::iterator iter = std::find(contentTraces.begin(), contentTraces.end(), titleId);
 
@@ -120,6 +132,8 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
             }
         }
     }
+
+
 }
 
 bool Silhouette::getUpdated() const
@@ -140,5 +154,27 @@ int Silhouette::getGostLife() const
 void Silhouette::setGostLife(int value)
 {
     gostLife = value;
+}
+
+void Silhouette::histRGB(Mat &frame, Mat &fgMask)
+{
+    // Conversion to the right color space ???
+
+    // Size of the histogram
+    int histSize = HIST_SIZE; // bin size
+    float range[] = {0, 256}; // min max values
+    const float *ranges[] = {range};
+
+    // Extraction of the histograms
+    std::vector<cv::Mat> sourceChannels;
+    cv::split(frame, sourceChannels);
+    cv::calcHist(&sourceChannels[0], 1, 0, fgMask, hist1, 1, &histSize, ranges, true, false );
+    cv::calcHist(&sourceChannels[1], 1, 0, fgMask, hist2, 1, &histSize, ranges, true, false );
+    cv::calcHist(&sourceChannels[2], 1, 0, fgMask, hist3, 1, &histSize, ranges, true, false );
+
+    // Normalize
+    normalize(hist1, hist1);
+    normalize(hist2, hist2);
+    normalize(hist3, hist3);
 }
 
