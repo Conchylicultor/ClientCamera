@@ -108,6 +108,7 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
 
                 if(iter == contentTraces.end())
                 {
+                    // TODO: Add camera id information ???
                     contentTraces.push_back(titleId);
                     contentTraces.push_back(imageId);
                 }
