@@ -1,6 +1,6 @@
  #!/bin/sh
  
 git pull
-qmake -makefile
-qmake -o build/makefile -Wall
+qmake -makefile -o build/makefile -Wall
+cd build/
 make
