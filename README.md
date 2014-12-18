@@ -9,4 +9,27 @@ After cloning the project, just run the udpade script in order to keep the proje
 chmod +x update.sh
 ./update.sh
 cd build/
-./ClientCamera```
+./ClientCamera
+```
+
+The working directory when launching the program has to be a sub directory.
+
+The data are saved on a subfolder on the same level as the root folder (in order to insure the communication with the other programs)
+
+The structure must look something like this:
+* ReidPath/ClientCamera/ : Record the pedestrians
+* ReidPath/ClientCamera/build/ : Contain the executable file
+* ReidPath/ClientOnlineCamera/ : Other program which will have access to the data folder
+* ReidPath/Data/ : Folder were data are saved
+
+Moreover the folder ClientCamera must contain a video.yml indicating the url of the camera or files that have to be loaded.
+
+Here is is an example of video.yml:
+
+```
+%YAML:1.0
+videoNames:
+    - pathVid1
+    - pathVid2
+    - urlVideo3
+```
