@@ -3,10 +3,10 @@
 #include <iostream>
 #include <fstream>
 
-#define RECORD_TRACE 0
 
 #define HIST_SIZE 100
 
+int Silhouette::recordTrace = 0;
 int Silhouette::nbIds = 0;
 
 Silhouette::Silhouette() :
@@ -68,7 +68,7 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
     // LBP (Local binary patern): Texture information
 
     // Save on disk (for built the database)
-    if(RECORD_TRACE)
+    if(recordTrace)
     {
         // Save on disk >> For the database
         extFrames.push_back(pair<Mat, Mat>(persImg, persMask));
@@ -84,8 +84,8 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
                 string imageId = std::to_string(id) + "_" + std::to_string(extFrames.size());
 
                 // Save image
-                imwrite("/home/etienne/__A__/Data/Traces/" + imageId + ".png", extFrames.back().first);
-                imwrite("/home/etienne/__A__/Data/Traces/" + imageId + "_mask.png", extFrames.back().second);
+                imwrite("../../Data/Traces/" + imageId + ".png", extFrames.back().first);
+                imwrite("../../Data/Traces/" + imageId + "_mask.png", extFrames.back().second);
 
                 list<string> contentTraces;
 
@@ -120,7 +120,7 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
 
                 // Write file
                 ofstream fileTracesOut;
-                fileTracesOut.open ("/home/etienne/__A__/Data/Traces/traces.txt");
+                fileTracesOut.open ("../../Data/Traces/traces.txt");
                 if(!fileTracesOut.is_open())
                 {
                     cout << "Error: No file trace out" << endl;
@@ -133,8 +133,6 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
             }
         }
     }
-
-
 }
 
 bool Silhouette::getUpdated() const
@@ -155,6 +153,11 @@ int Silhouette::getGostLife() const
 void Silhouette::setGostLife(int value)
 {
     gostLife = value;
+}
+
+void Silhouette::setRecordTrace(bool value)
+{
+    recordTrace = value;
 }
 
 void Silhouette::histRGB(Mat &frame, Mat &fgMask)

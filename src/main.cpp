@@ -2,6 +2,7 @@
 #include "opencv2/opencv.hpp"
 
 #include "camera.h"
+#include "silhouette.h"
 
 using namespace std;
 using namespace cv;
@@ -22,17 +23,23 @@ int main()
         cout << "Error: No congiguration file" << endl;
     }
 
-    if(!fileConfig["recording"].empty())
+    if(!fileConfig["recordingVid"].empty())
     {
-        fileConfig["recording"] >> recording;
+        fileConfig["recordingVid"] >> recording;
+    }
+
+    if(!fileConfig["recordingTrace"].empty())
+    {
+        bool recordingTrace = false;
+        fileConfig["recordingTrace"] >> recording;
+        Silhouette::setRecordTrace(recordingTrace);
     }
 
     FileNode nodeVideoNames = fileConfig["videoNames"];
 
-    cout << nodeVideoNames.size() << endl;
+    cout << "Try opening " << nodeVideoNames.size() << " sources..." << endl;
     for(string currentName : nodeVideoNames)
     {
-        cout << currentName << endl;
         listCam.push_back(new Camera(currentName, recording));
     }
 

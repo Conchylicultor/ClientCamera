@@ -25,4 +25,6 @@ Makefile*
 *.autosave
 
 # Custom
+
 build/
+*.yml

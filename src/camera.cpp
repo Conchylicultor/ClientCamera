@@ -26,7 +26,7 @@ Camera::Camera(string pathVid, bool record) :
 
     nbCams++;
     nameVid = "Vid_" + std::to_string(nbCams);
-    cout << nameVid << " loaded" << endl;
+    cout << nameVid << " loaded: " << pathVid << endl;
 
     namedWindow(nameVid);
     moveWindow(nameVid, (nbCams-1)*640 ,0);
@@ -41,7 +41,7 @@ Camera::Camera(string pathVid, bool record) :
     {
         if(success)
         {
-            writer.open("/home/etienne/__A__/Data/Recordings/" + nameVid + ".avi", CV_FOURCC('I','4','2','0'), 20, frame.size());
+            writer.open("../../Data/Recordings/" + nameVid + ".avi", CV_FOURCC('I','4','2','0'), 20, frame.size());
             if(!writer.isOpened())
             {
                 cout << "Pb recording with" << nameVid << endl;

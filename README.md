@@ -29,7 +29,9 @@ Here is is an example of video.yml:
 ```
 %YAML:1.0
 videoNames:
-    - pathVid1
-    - pathVid2
-    - urlVideo3
+    - '/home/user/Data/Recordings/00_Vid_1.mp4'
+    - '/home/user/Data/Recordings/00_Vid_2.mp4'
+    - 'http://login:password@192.168.0.168/axis-cgi/mjpg/video.cgi?;type=.mjpg'
+recordingVid: 0
+recordingTrace: 0
 ```

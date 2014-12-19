@@ -13,6 +13,8 @@ class Silhouette
 public:
     Silhouette();
 
+    static void setRecordTrace(bool value);
+
     int distanceFrom(const cv::Rect &rect) const;
     void addPos(const Rect &newPos);
     void plot(Mat &frame);
@@ -25,8 +27,10 @@ public:
     void setGostLife(int value);
 
 private:
-    static int nbIds;
-    int id;
+    static int recordTrace;// If extracted pictures are savedon disk or not
+
+    static int nbIds; // Total number of silhouette
+    int id; // Id of the current silhouette
 
     Scalar color;
 
