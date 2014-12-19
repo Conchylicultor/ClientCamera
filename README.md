@@ -33,5 +33,5 @@ videoNames:
     - '/home/user/Data/Recordings/00_Vid_2.mp4'
     - 'http://login:password@192.168.0.168/axis-cgi/mjpg/video.cgi?;type=.mjpg'
 recordingVid: 0
-recordingTrace: 0
+recordingTrace: 1
 ```
