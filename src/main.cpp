@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include "opencv2/opencv.hpp"
 
 #include "camera.h"
@@ -15,6 +16,7 @@ int main()
 
     int recording = 0;
     int hideGui = 0;
+    chrono::minutes lifeTime(-1);
     vector<Camera*> listCam;
 
     // Set up configuration
@@ -32,6 +34,13 @@ int main()
     if(!fileConfig["hideGui"].empty())
     {
         fileConfig["hideGui"] >> hideGui;
+    }
+
+    if(!fileConfig["lifeTime"].empty())
+    {
+        int lifeTimeInt = 0;
+        fileConfig["lifeTime"] >> lifeTimeInt;
+        lifeTime = chrono::minutes(lifeTimeInt);
     }
 
     if(!fileConfig["recordingTrace"].empty())
@@ -58,6 +67,7 @@ int main()
         }
     }*/
 
+    chrono::steady_clock::time_point beginTime = chrono::steady_clock::now();
     while(1)
     {
         // Computation
@@ -81,6 +91,12 @@ int main()
             }
         }
         else if(key >= 0) // Other key
+        {
+            break; // Exit
+        }
+
+        if(lifeTime > chrono::minutes(0) &&
+           chrono::steady_clock::now()-beginTime > lifeTime)
         {
             break; // Exit
         }

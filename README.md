@@ -35,4 +35,7 @@ videoNames:
 recordingVid: 0
 recordingTrace: 1
 hideGui: 0
+lifeTime: 300
 ```
+
+Use the hideGui option for the release version. lifeTime represent the number of minute before the program automatically shutdown.
