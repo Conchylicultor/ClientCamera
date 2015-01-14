@@ -34,4 +34,5 @@ videoNames:
     - 'http://login:password@192.168.0.168/axis-cgi/mjpg/video.cgi?;type=.mjpg'
 recordingVid: 0
 recordingTrace: 1
+hideGui: 0
 ```
