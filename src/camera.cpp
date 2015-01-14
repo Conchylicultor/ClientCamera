@@ -9,8 +9,9 @@
 
 int Camera::nbCams = 0;
 
-Camera::Camera(string pathVid, bool record) :
+Camera::Camera(string pathVid, bool record, bool hideGui) :
     recording(record),
+    hidingGui(hideGui),
     success(false),
     pause(false),
     backgroundSubstractor()
@@ -28,8 +29,12 @@ Camera::Camera(string pathVid, bool record) :
     nameVid = "Vid_" + std::to_string(nbCams);
     cout << nameVid << " loaded: " << pathVid << endl;
 
-    namedWindow(nameVid);
-    moveWindow(nameVid, (nbCams-1)*640 ,0);
+
+    if(!hidingGui)
+    {
+        namedWindow(nameVid);
+        moveWindow(nameVid, (nbCams-1)*640 ,0);
+    }
 
     // Sometimes the first frame is unreacheable
     while(!success)
@@ -89,9 +94,15 @@ void Camera::play()
         detectPersons();
         tracking();
         computeFeatures();
-        addVisualInfos();
+        if(!hidingGui || recording) // Otherwise, no need to add computer time
+        {
+            addVisualInfos();
+        }
 
-        imshow(nameVid, frame);
+        if(!hidingGui)
+        {
+            imshow(nameVid, frame);
+        }
 
         if(recording)
         {

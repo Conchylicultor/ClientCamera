@@ -6,7 +6,7 @@
 
 #define HIST_SIZE 100
 
-int Silhouette::recordTrace = 0;
+bool Silhouette::recordTrace = false;
 int Silhouette::nbIds = 0;
 
 Silhouette::Silhouette() :
@@ -55,9 +55,6 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
     Mat persImg  = frame (previousPos.back());
     Mat persMask = fgMask(previousPos.back());
 
-    imshow("persImg", persImg);
-    imshow("persMask", persMask);
-
     // Extract features
 
     // TODO: Segmentation
@@ -91,11 +88,11 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
 
                 // Write into file
                 ifstream fileTracesIn;
-                fileTracesIn.open ("/home/etienne/__A__/Data/Traces/traces.txt");
+                fileTracesIn.open ("../../Data/Traces/traces.txt");
                 if(fileTracesIn.is_open())
                 {
                     // Read entire file
-                    for(string line; std::getline(fileTracesIn, line); )
+                    for(string line ; std::getline(fileTracesIn, line) ; )
                     {
                         contentTraces.push_back(line);
                     }

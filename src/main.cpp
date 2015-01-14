@@ -13,7 +13,8 @@ int main()
 {
     cout << "Loading camera..." << endl;
 
-    bool recording = false;
+    int recording = 0;
+    int hideGui = 0;
     vector<Camera*> listCam;
 
     // Set up configuration
@@ -28,10 +29,15 @@ int main()
         fileConfig["recordingVid"] >> recording;
     }
 
+    if(!fileConfig["hideGui"].empty())
+    {
+        fileConfig["hideGui"] >> hideGui;
+    }
+
     if(!fileConfig["recordingTrace"].empty())
     {
-        bool recordingTrace = false;
-        fileConfig["recordingTrace"] >> recording;
+        int recordingTrace = 0;
+        fileConfig["recordingTrace"] >> recordingTrace;
         Silhouette::setRecordTrace(recordingTrace);
     }
 
@@ -40,7 +46,7 @@ int main()
     cout << "Try opening " << nodeVideoNames.size() << " sources..." << endl;
     for(string currentName : nodeVideoNames)
     {
-        listCam.push_back(new Camera(currentName, recording));
+        listCam.push_back(new Camera(currentName, recording, hideGui));
     }
 
     // Clear the buffer of each cam

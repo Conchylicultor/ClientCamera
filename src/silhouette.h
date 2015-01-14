@@ -27,7 +27,7 @@ public:
     void setGostLife(int value);
 
 private:
-    static int recordTrace;// If extracted pictures are savedon disk or not
+    static bool recordTrace;// If extracted pictures are savedon disk or not
 
     static int nbIds; // Total number of silhouette
     int id; // Id of the current silhouette

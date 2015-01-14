@@ -15,7 +15,7 @@ using namespace cv;
 class Camera
 {
 public:
-    Camera(string pathVid, bool record = false);
+    Camera(string pathVid, bool record = false, bool hideGui = false);
     ~Camera();
 
     void grab();
@@ -31,6 +31,7 @@ private:
     VideoWriter writer;
 
     bool recording;
+    bool hidingGui;
 
     bool success;
     bool pause;
