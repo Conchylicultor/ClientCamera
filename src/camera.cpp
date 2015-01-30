@@ -266,6 +266,7 @@ void Camera::tracking()
             }
             else if((*iter)->getGostLife() == 0) // Time out. The silhouette is removed (/!\ validity of the iterator)
             {
+                (*iter)->saveCamInfos(nameVid); // We save the camera information before destroying the object
                 delete (*iter);
                 iter = listCurrentSilhouette.erase(iter);
                 continue;
@@ -291,7 +292,7 @@ void Camera::computeFeatures()
         if((*iter)->getUpdated())// The silhouette is present on the current frame
         {
             // TODO: Other conditions to extract the features ?
-            (*iter)->updateFeatures(frame, fgMask);
+            (*iter)->addFrame(frame, fgMask);
         }
     }
 }

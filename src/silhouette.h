@@ -2,6 +2,7 @@
 #define SILHOUETTE_H
 
 #include <iostream>
+#include <chrono>
 #include <list>
 #include "opencv2/opencv.hpp"
 
@@ -18,7 +19,8 @@ public:
     int distanceFrom(const cv::Rect &rect) const;
     void addPos(const Rect &newPos);
     void plot(Mat &frame);
-    void updateFeatures(Mat &frame, Mat &fgMask);
+    void addFrame(Mat &frame, Mat &fgMask); // And save eventually
+    void saveCamInfos(string nameVid);
 
     bool getUpdated() const;
     void setUpdated(bool value);
@@ -32,7 +34,7 @@ private:
     static int nbIds; // Total number of silhouette
     int id; // Id of the current silhouette
 
-    Scalar color;
+    Scalar color; // Show on the video
 
     list<cv::Rect> previousPos;
 
@@ -45,14 +47,7 @@ private:
 
     // ----- For save -----
     list< pair<Mat, Mat> > extFrames;
-
-    // ----- For feature extraction -----
-
-    // Color histogram
-    void histRGB(Mat &frame, Mat &fgMask);
-    Mat hist1;
-    Mat hist2;
-    Mat hist3;
+    chrono::system_clock::time_point beginTime;
 };
 
 #endif // SILHOUETTE_H

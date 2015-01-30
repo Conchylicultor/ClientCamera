@@ -58,6 +58,8 @@ int main()
         listCam.push_back(new Camera(currentName, recording, hideGui));
     }
 
+    fileConfig.release();
+
     // Clear the buffer of each cam
     /*for(int i = 0 ; i < 150 ; ++i)
     {

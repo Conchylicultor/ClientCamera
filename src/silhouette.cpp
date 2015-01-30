@@ -4,7 +4,8 @@
 #include <fstream>
 
 
-#define HIST_SIZE 100
+// We only save if the person has been recorded more than 10 times (frames)
+const int minToSave = 10;
 
 bool Silhouette::recordTrace = false;
 int Silhouette::nbIds = 0;
@@ -20,6 +21,11 @@ Silhouette::Silhouette() :
     color[0] = std::rand() % 255;
     color[1] = std::rand() % 255;
     color[2] = std::rand() % 255;
+
+    if(recordTrace)
+    {
+        beginTime = chrono::system_clock::now();
+    }
 }
 
 int Silhouette::distanceFrom(const Rect &rect) const
@@ -49,20 +55,11 @@ void Silhouette::plot(Mat &frame)
     rectangle(frame, previousPos.back(), color, 2);
 }
 
-void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
+void Silhouette::addFrame(Mat &frame, Mat &fgMask)
 {
     // (?) Other conditions to extract the features ?
     Mat persImg  = frame (previousPos.back());
     Mat persMask = fgMask(previousPos.back());
-
-    // Extract features
-
-    // TODO: Segmentation
-
-    // RGB histogram
-    histRGB(frame, fgMask);
-
-    // LBP (Local binary patern): Texture information
 
     // Save on disk (for built the database)
     if(recordTrace)
@@ -71,7 +68,6 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
         extFrames.push_back(pair<Mat, Mat>(persImg, persMask));
 
         // We only save if the person has been recorded more than 10 times (frames)
-        const int minToSave = 10;
         if(extFrames.size() > minToSave)
         {
             // Filter: aspect ratio
@@ -86,7 +82,7 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
 
                 list<string> contentTraces;
 
-                // Write into file
+                // Look into the file
                 ifstream fileTracesIn;
                 fileTracesIn.open ("../../Data/Traces/traces.txt");
                 if(fileTracesIn.is_open())
@@ -105,9 +101,9 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
 
                 if(iter == contentTraces.end())
                 {
-                    // TODO: Add camera id information ???
                     contentTraces.push_back(titleId);
                     contentTraces.push_back(imageId);
+                    // The camera id informations are added in an annex file when the sequence is finished
                 }
                 else
                 {
@@ -129,6 +125,26 @@ void Silhouette::updateFeatures(Mat &frame, Mat &fgMask)
                 fileTracesOut.close();
             }
         }
+    }
+}
+
+void Silhouette::saveCamInfos(string nameVid)
+{
+    if(recordTrace && extFrames.size() > (minToSave+1))
+    {
+        chrono::system_clock::time_point endTime = chrono::system_clock::now();
+        FileStorage fileTraceCam("../../Data/Traces/" + std::to_string(id) + "_cam.yml", FileStorage::WRITE);
+        if(!fileTraceCam.isOpened())
+        {
+            cout << "Error: Failed to save the camera informations" << endl;
+            return;
+        }
+        fileTraceCam << "camId" << nameVid;
+        //fileTraceCam << "entranceVector" << x1,y1 ; x2,y2
+        //fileTraceCam << "exitVector" << x1,y1 ; x2,y2
+        fileTraceCam << "beginDate" << static_cast<int>(chrono::system_clock::to_time_t(beginTime));
+        fileTraceCam << "endDate" << static_cast<int>(chrono::system_clock::to_time_t(endTime));
+        fileTraceCam.release();
     }
 }
 
@@ -156,26 +172,3 @@ void Silhouette::setRecordTrace(bool value)
 {
     recordTrace = value;
 }
-
-void Silhouette::histRGB(Mat &frame, Mat &fgMask)
-{
-    // Conversion to the right color space ???
-
-    // Size of the histogram
-    int histSize = HIST_SIZE; // bin size
-    float range[] = {0, 256}; // min max values
-    const float *ranges[] = {range};
-
-    // Extraction of the histograms
-    std::vector<cv::Mat> sourceChannels;
-    cv::split(frame, sourceChannels);
-    cv::calcHist(&sourceChannels[0], 1, 0, fgMask, hist1, 1, &histSize, ranges, true, false );
-    cv::calcHist(&sourceChannels[1], 1, 0, fgMask, hist2, 1, &histSize, ranges, true, false );
-    cv::calcHist(&sourceChannels[2], 1, 0, fgMask, hist3, 1, &histSize, ranges, true, false );
-
-    // Normalize
-    normalize(hist1, hist1);
-    normalize(hist2, hist2);
-    normalize(hist3, hist3);
-}
-
