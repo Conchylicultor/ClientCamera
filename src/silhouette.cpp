@@ -4,8 +4,11 @@
 #include <fstream>
 
 
-// We only save if the person has been recorded more than 10 times (frames)
-const int minToSave = 10;
+// We only save if the person has been recorded more than 5 times (frames)
+const int minToSave = 5;
+
+// Entrance and exit direction vectors are compute using this number of frame (has to be < minToSave)
+const int nbFrameDirection = 4;
 
 bool Silhouette::recordTrace = false;
 int Silhouette::nbIds = 0;
@@ -132,7 +135,30 @@ void Silhouette::saveCamInfos(string nameVid)
 {
     if(recordTrace && extFrames.size() > (minToSave+1))
     {
+        // Compute the needed informations
+
         chrono::system_clock::time_point endTime = chrono::system_clock::now();
+
+        if(extFrames.size() < nbFrameDirection)
+        {
+            cout << "Error: no enought frame to compute the direction" << endl;
+            exit(0);
+        }
+
+        // Entrance vector
+        cv::Point pt11(previousPos.front().x + previousPos.front().width/2,
+                      previousPos.front().y + previousPos.front().height/2);
+        cv::Point pt12(previousPos.at(nbFrameDirection).x + previousPos.at(nbFrameDirection).width/2,
+                      previousPos.at(nbFrameDirection).y + previousPos.at(nbFrameDirection).height/2);
+
+        // Exit vector
+        cv::Point pt21(previousPos.at(previousPos.size() - nbFrameDirection - 1).x + previousPos.at(previousPos.size() - nbFrameDirection - 1).width/2,
+                      previousPos.at(previousPos.size() - nbFrameDirection - 1).y + previousPos.at(previousPos.size() - nbFrameDirection - 1).height/2);
+        cv::Point pt22(previousPos.back().x + previousPos.back().width/2,
+                      previousPos.back().y + previousPos.back().height/2);
+
+        // Recording
+
         FileStorage fileTraceCam("../../Data/Traces/" + std::to_string(id) + "_cam.yml", FileStorage::WRITE);
         if(!fileTraceCam.isOpened())
         {
@@ -140,11 +166,30 @@ void Silhouette::saveCamInfos(string nameVid)
             return;
         }
         fileTraceCam << "camId" << nameVid;
-        //fileTraceCam << "entranceVector" << x1,y1 ; x2,y2
-        //fileTraceCam << "exitVector" << x1,y1 ; x2,y2
+        fileTraceCam << "entranceVector" << "{";
+            fileTraceCam << "x1" << pt11.x;
+            fileTraceCam << "y1" << pt11.y;
+            fileTraceCam << "x2" << pt12.x;
+            fileTraceCam << "y2" << pt12.y;
+            // The normalized vector (only the direction with enventually a gama information) will be compute in the other clients
+        fileTraceCam << "}";
+        fileTraceCam << "exitVector" << "{";
+            fileTraceCam << "x1" << pt21.x;
+            fileTraceCam << "y1" << pt21.y;
+            fileTraceCam << "x2" << pt22.x;
+            fileTraceCam << "y2" << pt22.y;
+        fileTraceCam << "}";
         fileTraceCam << "beginDate" << static_cast<int>(chrono::system_clock::to_time_t(beginTime));
         fileTraceCam << "endDate" << static_cast<int>(chrono::system_clock::to_time_t(endTime));
         fileTraceCam.release();
+
+        // Debug code:
+        /*cv::Mat testImg(1000,1000, CV_8UC3, Scalar(0,18,19));
+        cv::line(testImg, pt11, pt12, color, 2);
+        cv::circle(testImg, pt12, 3, color);
+        cv::line(testImg, pt21, pt22, color, 2);
+        cv::circle(testImg, pt22, 3, color);
+        cv::imshow("Direction vector", testImg);*/
     }
 }
 

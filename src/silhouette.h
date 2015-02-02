@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <chrono>
-#include <list>
+#include <vector>
 #include "opencv2/opencv.hpp"
 
 using namespace std;
@@ -36,7 +36,7 @@ private:
 
     Scalar color; // Show on the video
 
-    list<cv::Rect> previousPos;
+    vector<cv::Rect> previousPos;
 
     // ----- For tracking -----
 
