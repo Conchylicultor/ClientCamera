@@ -106,7 +106,8 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask)
                 {
                     contentTraces.push_back(titleId);
                     contentTraces.push_back(imageId);
-                    // The camera id informations are added in an annex file when the sequence is finished
+                    contentTraces.push_back(std::to_string(id) + "_cam");
+                    // The camera id information is added in an annex file when the sequence is finished
                 }
                 else
                 {
