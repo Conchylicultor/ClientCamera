@@ -88,7 +88,7 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask)
                 // Look into the file
                 ifstream fileTracesIn;
                 fileTracesIn.open ("../../Data/Traces/traces.txt");
-                if(fileTracesIn.is_open())
+                if(fileTracesIn.is_open()) // For the first sequence the file may not exist
                 {
                     // Read entire file
                     for(string line ; std::getline(fileTracesIn, line) ; )
