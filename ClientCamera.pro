@@ -3,6 +3,7 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
+QMAKE_MAKEFILE += build/makefile
 QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += src/main.cpp \
