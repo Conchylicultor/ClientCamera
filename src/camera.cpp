@@ -20,7 +20,7 @@ Camera::Camera(string pathVid, bool record, bool hideGui) :
 
     if (!cap.isOpened())
     {
-        cout << "Could not capture :" << endl;
+        cout << "Could not capture: " << endl;
         cout << pathVid << endl;
         exit(0);
     }
@@ -33,7 +33,7 @@ Camera::Camera(string pathVid, bool record, bool hideGui) :
     if(!hidingGui)
     {
         namedWindow(nameVid);
-        moveWindow(nameVid, (nbCams-1)*640 ,0);
+        // moveWindow(nameVid, (nbCams-1)*640 ,0);
     }
 
     // Sometimes the first frame is unreacheable
@@ -49,13 +49,13 @@ Camera::Camera(string pathVid, bool record, bool hideGui) :
             writer.open("../../Data/Recordings/" + nameVid + ".avi", CV_FOURCC('I','4','2','0'), 20, frame.size());
             if(!writer.isOpened())
             {
-                cout << "Pb recording with" << nameVid << endl;
+                cout << "Pb recording with " << nameVid << endl;
                 recording = false;
             }
         }
         else
         {
-            cout << "Pb recording with" << nameVid << endl;
+            cout << "Pb recording with " << nameVid << endl;
         }
     }
 
