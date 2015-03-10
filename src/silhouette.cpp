@@ -8,7 +8,8 @@
 const int minToSave = 5;
 
 // Entrance and exit direction vectors are compute using this number of frame (has to be < minToSave)
-const int nbFrameDirection = 4;
+const int nbFrameDirectionMin = 4;
+const float lengthDirectionVectorThreshold = 50.0;
 
 bool Silhouette::recordTrace = false;
 int Silhouette::nbIds = 0;
@@ -149,19 +150,53 @@ void Silhouette::saveCamInfos(string nameVid)
 
         chrono::system_clock::time_point endTime = chrono::system_clock::now();
 
-        if(extFrames.size() < nbFrameDirection)
+        if(extFrames.size() < nbFrameDirectionMin)
         {
             cout << "Error: no enought frame to compute the direction" << endl;
             exit(0);
         }
 
+        float vectorLength = 0.0;
+
         // Entrance vector
         cv::Point pt11(centerRect(previousPos.front()));
-        cv::Point pt12(centerRect(previousPos.at(nbFrameDirection)));
+        cv::Point pt12;
+        for(size_t i = nbFrameDirectionMin ; i < previousPos.size() ; ++i) // Try to compute a significant vector (length > threshold)
+        {
+            pt12 = Point(centerRect(previousPos.at(i)));
+            vectorLength = euclideanDist(pt11, pt12);
+
+            // End of the loop if the vector is long enought
+            if(vectorLength > lengthDirectionVectorThreshold)
+            {
+                i = previousPos.size();
+            }
+        }
+
+        if(vectorLength < lengthDirectionVectorThreshold)
+        {
+            cout << "Warning: direction vector length too small" << endl;
+        }
 
         // Exit vector
-        cv::Point pt21(centerRect(previousPos.at(previousPos.size() - nbFrameDirection - 1)));
+        cv::Point pt21;
         cv::Point pt22(centerRect(previousPos.back()));
+        for(size_t i = nbFrameDirectionMin ; i < previousPos.size() ; ++i) // Try to compute a significant vector (length > threshold)
+        {
+            pt21 = Point(centerRect(previousPos.at(previousPos.size() - i - 1)));
+            vectorLength = euclideanDist(pt21, pt22);
+
+            // End of the loop if the vector is long enought
+            if(vectorLength > lengthDirectionVectorThreshold)
+            {
+                i = previousPos.size();
+            }
+        }
+
+        if(vectorLength < lengthDirectionVectorThreshold)
+        {
+            cout << "Warning: direction vector length too small" << endl;
+        }
 
         // Recording
 
