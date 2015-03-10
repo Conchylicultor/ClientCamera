@@ -13,6 +13,17 @@ const int nbFrameDirection = 4;
 bool Silhouette::recordTrace = false;
 int Silhouette::nbIds = 0;
 
+cv::Point centerRect(const cv::Rect &rect)
+{
+    return cv::Point(rect.x + rect.width/2,
+                     rect.y + rect.height/2);
+}
+
+float euclideanDist(const cv::Point &p, const cv::Point &q) {
+    cv::Point diff = p - q;
+    return cv::sqrt(diff.x*diff.x + diff.y*diff.y);
+}
+
 Silhouette::Silhouette() :
     updated(false),
     gostLife(-1)
@@ -34,12 +45,10 @@ Silhouette::Silhouette() :
 int Silhouette::distanceFrom(const Rect &rect) const
 {
     // Centers of the rectangles
-    cv::Point c1(     rect.x          +        rect.width/2       ,
-                      rect.y          +        rect.height/2      );
-    cv::Point c2(previousPos.back().x + previousPos.back().width/2,
-                 previousPos.back().y + previousPos.back().height/2);
+    cv::Point c1(centerRect(rect));
+    cv::Point c2(centerRect(previousPos.back()));
 
-    return (int)sqrt((c2.x - c1.x)*(c2.x - c1.x) + (c2.y - c1.y)*(c2.y - c1.y));
+    return (int)euclideanDist(c1, c2);
 }
 
 void Silhouette::addPos(const Rect &newPos)
@@ -134,7 +143,7 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask)
 
 void Silhouette::saveCamInfos(string nameVid)
 {
-    if(recordTrace && extFrames.size() > (minToSave+1))
+    if(recordTrace && extFrames.size() > (minToSave+1)) // Filter the false positive
     {
         // Compute the needed informations
 
@@ -147,16 +156,12 @@ void Silhouette::saveCamInfos(string nameVid)
         }
 
         // Entrance vector
-        cv::Point pt11(previousPos.front().x + previousPos.front().width/2,
-                      previousPos.front().y + previousPos.front().height/2);
-        cv::Point pt12(previousPos.at(nbFrameDirection).x + previousPos.at(nbFrameDirection).width/2,
-                      previousPos.at(nbFrameDirection).y + previousPos.at(nbFrameDirection).height/2);
+        cv::Point pt11(centerRect(previousPos.front()));
+        cv::Point pt12(centerRect(previousPos.at(nbFrameDirection)));
 
         // Exit vector
-        cv::Point pt21(previousPos.at(previousPos.size() - nbFrameDirection - 1).x + previousPos.at(previousPos.size() - nbFrameDirection - 1).width/2,
-                      previousPos.at(previousPos.size() - nbFrameDirection - 1).y + previousPos.at(previousPos.size() - nbFrameDirection - 1).height/2);
-        cv::Point pt22(previousPos.back().x + previousPos.back().width/2,
-                      previousPos.back().y + previousPos.back().height/2);
+        cv::Point pt21(centerRect(previousPos.at(previousPos.size() - nbFrameDirection - 1)));
+        cv::Point pt22(centerRect(previousPos.back()));
 
         // Recording
 
