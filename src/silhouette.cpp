@@ -7,6 +7,10 @@
 // We only save if the person has been recorded more than 5 times (frames)
 const int minToSave = 5;
 
+// Limit ratio for smooth tracking
+const float maxRatioHeight = 1.1;
+const float correctionRatioHeightStepDown = 0.02;
+
 // Entrance and exit direction vectors are compute using this number of frame (has to be < minToSave)
 const int nbFrameDirectionMin = 4;
 const float lengthDirectionVectorThreshold = 50.0;
@@ -52,8 +56,30 @@ int Silhouette::distanceFrom(const Rect &rect) const
     return (int)euclideanDist(c1, c2);
 }
 
-void Silhouette::addPos(const Rect &newPos)
+void Silhouette::addPos(Rect &newPos)
 {
+    // Smooth tracking
+    if(previousPos.size() > 0)
+    {
+        float ratioHeight = static_cast<float>(previousPos.back().height) / static_cast<float>(newPos.height);
+        if(ratioHeight > maxRatioHeight)
+        {
+            // Recompute the rect
+            float correctionRatioHeight = 1.0;
+            correctionRatioHeight -= correctionRatioHeightStepDown;
+
+            int correctHeight = previousPos.back().height * correctionRatioHeight;
+            newPos.y = newPos.y + newPos.height - correctHeight;
+            newPos.height = correctHeight;
+
+            // TODO: Check the rect is really inside the image
+            if(newPos.y <= 0)
+            {
+                newPos.y = 0;
+            }
+        }
+    }
+
     previousPos.push_back(newPos);
 
     // Delete first if list too long

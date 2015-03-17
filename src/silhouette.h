@@ -17,7 +17,7 @@ public:
     static void setRecordTrace(bool value);
 
     int distanceFrom(const cv::Rect &rect) const;
-    void addPos(const Rect &newPos);
+    void addPos(Rect &newPos);
     void plot(Mat &frame);
     void addFrame(Mat &frame, Mat &fgMask); // And save eventually
     void saveCamInfos(string nameVid);
