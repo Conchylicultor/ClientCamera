@@ -76,10 +76,14 @@ void Silhouette::addPos(Rect &newPos)
             } // Otherwise, foot cropped
             newPos.height = correctHeight;
 
-            // TODO: Check the rect is really inside the image
+            // Check if the rect is really inside the image
             if(newPos.y <= 0)
             {
                 newPos.y = 0;
+            }
+            if(newPos.y + newPos.height >= 380) // TODO: Extract the real screen size
+            {
+                newPos.height = 380 - newPos.y;
             }
         }
     }
