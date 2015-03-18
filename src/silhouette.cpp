@@ -69,7 +69,11 @@ void Silhouette::addPos(Rect &newPos)
             correctionRatioHeight -= correctionRatioHeightStepDown;
 
             int correctHeight = previousPos.back().height * correctionRatioHeight;
-            newPos.y = newPos.y + newPos.height - correctHeight;
+
+            if(std::abs(newPos.y - previousPos.back().y) >= std::abs((newPos.y + newPos.height) - (previousPos.back().y + previousPos.back().height))) // Head cropped
+            {
+                newPos.y = newPos.y + newPos.height - correctHeight;
+            } // Otherwise, foot cropped
             newPos.height = correctHeight;
 
             // TODO: Check the rect is really inside the image
