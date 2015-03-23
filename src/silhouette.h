@@ -15,6 +15,7 @@ public:
     Silhouette();
 
     static void setRecordTrace(bool value);
+    static void setClientId(int value);
 
     int distanceFrom(const cv::Rect &rect) const;
     void addPos(Rect &newPos);
@@ -29,7 +30,8 @@ public:
     void setGostLife(int value);
 
 private:
-    static bool recordTrace;// If extracted pictures are savedon disk or not
+    static bool recordTrace;// If extracted pictures are saved on disk or not
+    static int clientId;// Used into the filename (when recording)
 
     static int nbIds; // Total number of silhouette
     int id; // Id of the current silhouette

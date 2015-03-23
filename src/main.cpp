@@ -47,6 +47,10 @@ int main()
     {
         int recordingTrace = 0;
         fileConfig["recordingTrace"] >> recordingTrace;
+        if(recordingTrace)
+        {
+            system("exec rm ../../Data/Traces/*"); // Clear the folder before recording
+        }
         Silhouette::setRecordTrace(recordingTrace);
     }
 
@@ -58,6 +62,23 @@ int main()
         listCam.push_back(new Camera(currentName, recording, hideGui));
     }
 
+    fileConfig.release();
+
+    fileConfig.open("../../ClientOnlineCamera/config.yml", cv::FileStorage::READ); // For reading the client id
+    int clientId = 0;
+    if(fileConfig.isOpened())
+    {
+        if(!fileConfig["clientId"].empty())
+        {
+            fileConfig["clientId"] >> clientId;
+        }
+    }
+
+    if(!clientId)
+    {
+        cout << "Warning, no client id found, use the default one (0)";
+    }
+    Silhouette::setClientId(clientId);
     fileConfig.release();
 
     // Clear the buffer of each cam

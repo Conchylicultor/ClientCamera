@@ -16,6 +16,7 @@ const int nbFrameDirectionMin = 4;
 const float lengthDirectionVectorThreshold = 50.0;
 
 bool Silhouette::recordTrace = false;
+int Silhouette::clientId = 0;
 int Silhouette::nbIds = 0;
 
 cv::Point centerRect(const cv::Rect &rect)
@@ -121,7 +122,8 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask)
             if(extFrames.back().first.rows / extFrames.back().first.cols > 1.4)
             {
                 // Compute image id
-                string imageId = std::to_string(id) + "_" + std::to_string(extFrames.size());
+                string sequenceId  = std::to_string(clientId) + "_" + std::to_string(id); // Id of the complete sequence
+                string imageId = sequenceId + "_" + std::to_string(extFrames.size()); // Id of the image inside the sequence
 
                 // Save image
                 imwrite("../../Data/Traces/" + imageId + ".png", extFrames.back().first);
@@ -143,14 +145,14 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask)
                 }
 
                 // Add content: insert lines
-                string titleId = "----- " + std::to_string(id) + " -----";
+                string titleId = "----- " + sequenceId + " -----";
                 list<string>::iterator iter = std::find(contentTraces.begin(), contentTraces.end(), titleId);
 
                 if(iter == contentTraces.end())
                 {
                     contentTraces.push_back(titleId);
                     contentTraces.push_back(imageId);
-                    contentTraces.push_back(std::to_string(id) + "_cam");
+                    contentTraces.push_back(sequenceId + "_cam");
                     // The camera id information is added in an annex file when the sequence is finished
                 }
                 else
@@ -234,7 +236,7 @@ void Silhouette::saveCamInfos(string nameVid)
 
         // Recording
 
-        FileStorage fileTraceCam("../../Data/Traces/" + std::to_string(id) + "_cam.yml", FileStorage::WRITE);
+        FileStorage fileTraceCam("../../Data/Traces/" + std::to_string(clientId) + "_" + std::to_string(id) + "_cam.yml", FileStorage::WRITE);
         if(!fileTraceCam.isOpened())
         {
             cout << "Error: Failed to save the camera informations" << endl;
@@ -291,4 +293,9 @@ void Silhouette::setGostLife(int value)
 void Silhouette::setRecordTrace(bool value)
 {
     recordTrace = value;
+}
+
+void Silhouette::setClientId(int value)
+{
+    clientId = value;
 }
