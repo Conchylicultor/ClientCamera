@@ -16,11 +16,28 @@ int main()
 
     int recording = 0;
     int hideGui = 0;
+    int clientId = 0;
     chrono::minutes lifeTime(-1);
     vector<Camera*> listCam;
 
     // Set up configuration
-    FileStorage fileConfig("../video.yml", FileStorage::READ);
+    FileStorage fileConfig("../../ClientOnlineCamera/config.yml", cv::FileStorage::READ); // For reading the client id
+    if(fileConfig.isOpened())
+    {
+        if(!fileConfig["clientId"].empty())
+        {
+            fileConfig["clientId"] >> clientId;
+        }
+    }
+
+    if(!clientId)
+    {
+        cout << "Warning, no client id found, use the default one (0)";
+    }
+    Silhouette::setClientId(clientId);
+    fileConfig.release();
+
+    fileConfig.open("../video.yml", FileStorage::READ);
     if(!fileConfig.isOpened())
     {
         cout << "Error: No congiguration file" << endl;
@@ -59,26 +76,9 @@ int main()
     cout << "Try opening " << nodeVideoNames.size() << " sources..." << endl;
     for(string currentName : nodeVideoNames)
     {
-        listCam.push_back(new Camera(currentName, recording, hideGui));
+        listCam.push_back(new Camera(currentName, clientId, recording, hideGui));
     }
 
-    fileConfig.release();
-
-    fileConfig.open("../../ClientOnlineCamera/config.yml", cv::FileStorage::READ); // For reading the client id
-    int clientId = 0;
-    if(fileConfig.isOpened())
-    {
-        if(!fileConfig["clientId"].empty())
-        {
-            fileConfig["clientId"] >> clientId;
-        }
-    }
-
-    if(!clientId)
-    {
-        cout << "Warning, no client id found, use the default one (0)";
-    }
-    Silhouette::setClientId(clientId);
     fileConfig.release();
 
     // Clear the buffer of each cam

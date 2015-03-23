@@ -9,7 +9,7 @@
 
 int Camera::nbCams = 0;
 
-Camera::Camera(string pathVid, bool record, bool hideGui) :
+Camera::Camera(string pathVid, int clientId, bool record, bool hideGui) :
     recording(record),
     hidingGui(hideGui),
     success(false),
@@ -26,7 +26,7 @@ Camera::Camera(string pathVid, bool record, bool hideGui) :
     }
 
     nbCams++;
-    nameVid = "Vid_" + std::to_string(nbCams);
+    nameVid = "Client_" + std::to_string(clientId) + "_Vid_" + std::to_string(nbCams);
     cout << nameVid << " loaded: " << pathVid << endl;
 
 

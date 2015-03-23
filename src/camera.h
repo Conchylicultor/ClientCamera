@@ -15,7 +15,7 @@ using namespace cv;
 class Camera
 {
 public:
-    Camera(string pathVid, bool record = false, bool hideGui = false);
+    Camera(string pathVid, int clientId, bool record = false, bool hideGui = false);
     ~Camera();
 
     void grab();
