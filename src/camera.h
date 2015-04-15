@@ -38,6 +38,12 @@ private:
 
     Mat frame;
 
+    // Spacial localisation
+    bool spacialLocalisation;
+    Mat homographyMatrix;
+
+    void loadTransformationMatrix();
+
     // ----- Pipeline -----
 
     // Step1: Person detection

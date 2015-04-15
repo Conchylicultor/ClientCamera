@@ -14,6 +14,7 @@ Camera::Camera(string pathVid, int clientId, bool record, bool hideGui) :
     hidingGui(hideGui),
     success(false),
     pause(false),
+    spacialLocalisation(false),
     backgroundSubstractor()
 {
     cap.open(pathVid);
@@ -36,10 +37,13 @@ Camera::Camera(string pathVid, int clientId, bool record, bool hideGui) :
         // moveWindow(nameVid, (nbCams-1)*640 ,0);
     }
 
+    loadTransformationMatrix(); // To extract the 2d coordinates of the image
+
     // Sometimes the first frame is unreacheable
     while(!success)
     {
         grab();
+        // TODO: Save the background image ?
     }
 
     if(recording)
@@ -114,6 +118,110 @@ void Camera::play()
 void Camera::togglePause()
 {
     pause = !pause;
+}
+
+void Camera::loadTransformationMatrix()
+{
+    Mat bgImg = imread("../calibration/vid" + std::to_string(nbCams) + ".png");
+    Mat mapImg = imread("../calibration/vid" + std::to_string(nbCams) + "_map.png");
+
+    if(!bgImg.data || !mapImg.data)
+    {
+        cout << "Warning: cannot load the image for trasformation matrix" << nbCams << endl;
+        spacialLocalisation = false;
+        return;
+    }
+
+    vector<Point2f> homographyPointsSrc(4);
+    vector<Point2f> homographyPointsDest(4);
+
+    int compteurDots = 0;
+
+    for(int i = 0 ; i < bgImg.cols; ++i)
+    {
+        for(int j = 0 ; j < bgImg.rows; ++j)
+        {
+            Vec3b color = bgImg.at<Vec3b>(Point(i,j));
+            if(color[2] == 255)
+            {
+                if(color[0] == 0 && color[1] == 0) // Red
+                {
+                    homographyPointsSrc.at(0) = Point2f(i,j);
+                    compteurDots++;
+                }
+                else if(color[0] == 255 && color[1] == 0) // Magenta
+                {
+                    homographyPointsSrc.at(1) = Point2f(i,j);
+                    compteurDots++;
+                }
+                else if(color[0] == 0 && color[1] == 255) // Yellow
+                {
+                    homographyPointsSrc.at(2) = Point2f(i,j);
+                    compteurDots++;
+                }
+            }
+            else if(color[1] == 255)
+            {
+                if(color[0] == 0 && color[2] == 0) // Green
+                {
+                    homographyPointsSrc.at(3) = Point2f(i,j);
+                    compteurDots++;
+                }
+            }
+        }
+    }
+
+    if(compteurDots != 4)
+    {
+        cout << "Error: Wrong number of dots for computing trasformation matrix (in background)" << endl;
+        return;
+    }
+
+    compteurDots=0;
+
+    for(int i = 0 ; i < mapImg.cols; ++i)
+    {
+        for(int j = 0 ; j < mapImg.rows; ++j)
+        {
+            Vec3b color = mapImg.at<Vec3b>(Point(i,j));
+            if(color[2] == 255)
+            {
+                if(color[0] == 0 && color[1] == 0) // Red
+                {
+                    homographyPointsDest.at(0) = Point2f(i,j);
+                    compteurDots++;
+                }
+                else if(color[0] == 255 && color[1] == 0) // Magenta
+                {
+                    homographyPointsDest.at(1) = Point2f(i,j);
+                    compteurDots++;
+                }
+                else if(color[0] == 0 && color[1] == 255) // Yellow
+                {
+                    homographyPointsDest.at(2) = Point2f(i,j);
+                    compteurDots++;
+                }
+            }
+            else if(color[1] == 255)
+            {
+                if(color[0] == 0 && color[2] == 0) // Green
+                {
+                    homographyPointsDest.at(3) = Point2f(i,j);
+                    compteurDots++;
+                }
+            }
+        }
+    }
+
+    if(compteurDots != 4)
+    {
+        cout << "Error: Wrong number of dots for computing trasformation matrix (in map)" << endl;
+        return;
+    }
+
+    homographyMatrix = findHomography(homographyPointsSrc, homographyPointsDest);
+
+    spacialLocalisation = true;
 }
 
 void Camera::detectPersons()
