@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 
+using namespace std;
+using namespace cv;
 
 // We only save if the person has been recorded more than 5 times (frames)
 const int minToSave = 5;

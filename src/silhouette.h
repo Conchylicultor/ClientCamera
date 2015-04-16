@@ -6,9 +6,6 @@
 #include <vector>
 #include "opencv2/opencv.hpp"
 
-using namespace std;
-using namespace cv;
-
 class Silhouette
 {
 public:
@@ -18,10 +15,10 @@ public:
     static void setClientId(int value);
 
     int distanceFrom(const cv::Rect &rect) const;
-    void addPos(Rect &newPos);
-    void plot(Mat &frame);
-    void addFrame(Mat &frame, Mat &fgMask); // And save eventually
-    void saveCamInfos(string nameVid);
+    void addPos(cv::Rect &newPos);
+    void plot(cv::Mat &frame);
+    void addFrame(cv::Mat &frame, cv::Mat &fgMask); // And save eventually
+    void saveCamInfos(std::string nameVid);
 
     bool getUpdated() const;
     void setUpdated(bool value);
@@ -36,9 +33,9 @@ private:
     static int nbIds; // Total number of silhouette
     int id; // Id of the current silhouette
 
-    Scalar color; // Show on the video
+    cv::Scalar color; // Show on the video
 
-    vector<cv::Rect> previousPos;
+    std::vector<cv::Rect> previousPos;
 
     // ----- For tracking -----
 
@@ -48,8 +45,8 @@ private:
     int gostLife;
 
     // ----- For save -----
-    list< pair<Mat, Mat> > extFrames;
-    chrono::system_clock::time_point beginTime;
+    std::list< std::pair<cv::Mat, cv::Mat> > extFrames;
+    std::chrono::system_clock::time_point beginTime;
 };
 
 #endif // SILHOUETTE_H

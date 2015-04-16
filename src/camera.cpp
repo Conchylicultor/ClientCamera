@@ -7,6 +7,9 @@
 #define DETECT_MIN_FINAL_WIDTH 20
 #define DETECT_MIN_DIST_CLOSE 80
 
+using namespace std;
+using namespace cv;
+
 int Camera::nbCams = 0;
 
 Camera::Camera(string pathVid, int clientId, bool record, bool hideGui) :

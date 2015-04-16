@@ -9,13 +9,10 @@
 #define REID_WIDTH 640
 #define REID_HEIGHT 480
 
-using namespace std;
-using namespace cv;
-
 class Camera
 {
 public:
-    Camera(string pathVid, int clientId, bool record = false, bool hideGui = false);
+    Camera(std::string pathVid, int clientId, bool record = false, bool hideGui = false);
     ~Camera();
 
     void grab();
@@ -25,10 +22,10 @@ public:
 
 private:
     static int nbCams;
-    string nameVid;
+    std::string nameVid;
 
-    VideoCapture cap;
-    VideoWriter writer;
+    cv::VideoCapture cap;
+    cv::VideoWriter writer;
 
     bool recording;
     bool hidingGui;
@@ -36,11 +33,11 @@ private:
     bool success;
     bool pause;
 
-    Mat frame;
+    cv::Mat frame;
 
     // Spacial localisation
     bool spacialLocalisation;
-    Mat homographyMatrix;
+    cv::Mat homographyMatrix;
 
     void loadTransformationMatrix();
 
@@ -48,13 +45,13 @@ private:
 
     // Step1: Person detection
     void detectPersons();
-    BackgroundSubtractorMOG2 backgroundSubstractor;
-    Mat fgMask;
-    vector<Rect> personsFound;
+    cv::BackgroundSubtractorMOG2 backgroundSubstractor;
+    cv::Mat fgMask;
+    std::vector<cv::Rect> personsFound;
 
     // Step2: Tracking
     void tracking();
-    list<Silhouette*> listCurrentSilhouette;
+    std::list<Silhouette*> listCurrentSilhouette;
 
     // Step3: Features extraction
     void computeFeatures();
