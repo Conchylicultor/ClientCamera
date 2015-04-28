@@ -140,36 +140,36 @@ void Camera::loadTransformationMatrix()
 
     int compteurDots = 0;
 
+    Vec3b colorRed = Vec3b(0,0,255);
+    Vec3b colorMagenta = Vec3b(255,0,255);
+    Vec3b colorYellow = Vec3b(0,255,255);
+    Vec3b colorGreen = Vec3b(0,255,0);
+
     for(int i = 0 ; i < bgImg.cols; ++i)
     {
         for(int j = 0 ; j < bgImg.rows; ++j)
         {
             Vec3b color = bgImg.at<Vec3b>(Point(i,j));
-            if(color[2] == 255)
+
+            if(color == colorRed)
             {
-                if(color[0] == 0 && color[1] == 0) // Red
-                {
-                    homographyPointsSrc.at(0) = Point2f(i,j);
-                    compteurDots++;
-                }
-                else if(color[0] == 255 && color[1] == 0) // Magenta
-                {
-                    homographyPointsSrc.at(1) = Point2f(i,j);
-                    compteurDots++;
-                }
-                else if(color[0] == 0 && color[1] == 255) // Yellow
-                {
-                    homographyPointsSrc.at(2) = Point2f(i,j);
-                    compteurDots++;
-                }
+                homographyPointsSrc.at(0) = Point2f(i,j);
+                compteurDots++;
             }
-            else if(color[1] == 255)
+            else if(color == colorMagenta)
             {
-                if(color[0] == 0 && color[2] == 0) // Green
-                {
-                    homographyPointsSrc.at(3) = Point2f(i,j);
-                    compteurDots++;
-                }
+                homographyPointsSrc.at(1) = Point2f(i,j);
+                compteurDots++;
+            }
+            else if(color == colorYellow)
+            {
+                homographyPointsSrc.at(2) = Point2f(i,j);
+                compteurDots++;
+            }
+            else if(color == colorGreen)
+            {
+                homographyPointsSrc.at(3) = Point2f(i,j);
+                compteurDots++;
             }
         }
     }
@@ -187,31 +187,26 @@ void Camera::loadTransformationMatrix()
         for(int j = 0 ; j < mapImg.rows; ++j)
         {
             Vec3b color = mapImg.at<Vec3b>(Point(i,j));
-            if(color[2] == 255)
+
+            if(color == colorRed)
             {
-                if(color[0] == 0 && color[1] == 0) // Red
-                {
-                    homographyPointsDest.at(0) = Point2f(i,j);
-                    compteurDots++;
-                }
-                else if(color[0] == 255 && color[1] == 0) // Magenta
-                {
-                    homographyPointsDest.at(1) = Point2f(i,j);
-                    compteurDots++;
-                }
-                else if(color[0] == 0 && color[1] == 255) // Yellow
-                {
-                    homographyPointsDest.at(2) = Point2f(i,j);
-                    compteurDots++;
-                }
+                homographyPointsDest.at(0) = Point2f(i,j);
+                compteurDots++;
             }
-            else if(color[1] == 255)
+            else if(color == colorMagenta)
             {
-                if(color[0] == 0 && color[2] == 0) // Green
-                {
-                    homographyPointsDest.at(3) = Point2f(i,j);
-                    compteurDots++;
-                }
+                homographyPointsDest.at(1) = Point2f(i,j);
+                compteurDots++;
+            }
+            else if(color == colorYellow)
+            {
+                homographyPointsDest.at(2) = Point2f(i,j);
+                compteurDots++;
+            }
+            else if(color == colorGreen)
+            {
+                homographyPointsDest.at(3) = Point2f(i,j);
+                compteurDots++;
             }
         }
     }
@@ -377,7 +372,7 @@ void Camera::tracking()
             }
             else if((*iter)->getGostLife() == 0) // Time out. The silhouette is removed (/!\ validity of the iterator)
             {
-                (*iter)->saveCamInfos(nameVid); // We save the camera information before destroying the object
+                (*iter)->saveCamInfos(nameVid, homographyMatrix); // We save the camera information before destroying the object
                 delete (*iter);
                 iter = listCurrentSilhouette.erase(iter);
                 continue;
@@ -403,7 +398,7 @@ void Camera::computeFeatures()
         if((*iter)->getUpdated())// The silhouette is present on the current frame
         {
             // TODO: Other conditions to extract the features ?
-            (*iter)->addFrame(frame, fgMask);
+            (*iter)->addFrame(frame, fgMask, spacialLocalisation);
         }
     }
 }

@@ -17,8 +17,8 @@ public:
     int distanceFrom(const cv::Rect &rect) const;
     void addPos(cv::Rect &newPos);
     void plot(cv::Mat &frame);
-    void addFrame(cv::Mat &frame, cv::Mat &fgMask); // And save eventually
-    void saveCamInfos(std::string nameVid);
+    void addFrame(cv::Mat &frame, cv::Mat &fgMask, bool useHomographyMatrix); // And save eventually
+    void saveCamInfos(std::string nameVid, const cv::Mat &homographyMatrix);
 
     bool getUpdated() const;
     void setUpdated(bool value);

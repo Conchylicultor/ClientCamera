@@ -105,7 +105,7 @@ void Silhouette::plot(Mat &frame)
     rectangle(frame, previousPos.back(), color, 2);
 }
 
-void Silhouette::addFrame(Mat &frame, Mat &fgMask)
+void Silhouette::addFrame(Mat &frame, Mat &fgMask, bool useHomographyMatrix)
 {
     // (?) Other conditions to extract the features ?
     Mat persImg  = frame (previousPos.back());
@@ -155,6 +155,10 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask)
                     contentTraces.push_back(titleId);
                     contentTraces.push_back(imageId);
                     contentTraces.push_back(sequenceId + "_cam");
+                    if(useHomographyMatrix)
+                    {
+                        contentTraces.push_back(sequenceId + "_pos");
+                    }
                     // The camera id information is added in an annex file when the sequence is finished
                 }
                 else
@@ -180,7 +184,7 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask)
     }
 }
 
-void Silhouette::saveCamInfos(string nameVid)
+void Silhouette::saveCamInfos(string nameVid, const cv::Mat &homographyMatrix)
 {
     if(recordTrace && extFrames.size() > (minToSave+1)) // Filter the false positive
     {
@@ -269,6 +273,22 @@ void Silhouette::saveCamInfos(string nameVid)
         cv::line(testImg, pt21, pt22, color, 2);
         cv::circle(testImg, pt22, 3, color);
         cv::imshow("Direction vector", testImg);*/
+
+        // Homography computation
+        if(homographyMatrix.data)
+        {
+            FileStorage fileTracePos("../../Data/Traces/" + std::to_string(clientId) + "_" + std::to_string(id) + "_pos.yml", FileStorage::WRITE);
+            for(const Rect &currentPos : previousPos)
+            {
+                Mat camCoordinate = Mat::ones(3,1, CV_64F);
+                camCoordinate.at<double>(0) = currentPos.br().x - currentPos.width/2;
+                camCoordinate.at<double>(1) = currentPos.br().y;
+
+                Mat mapCoordinate = homographyMatrix * camCoordinate;
+                mapCoordinate /= mapCoordinate.at<double>(2); // Convert to cartesian coordinates
+            }
+            fileTracePos.release();
+        }
     }
 }
 
