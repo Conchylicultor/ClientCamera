@@ -133,6 +133,17 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask, bool useHomographyMatrix)
 
                 list<string> contentTraces;
 
+                // We save all the sequences
+                ofstream fileSequenceTrace("../../Data/Traces/" + sequenceId + "_list.txt", ios_base::app);
+                if(!fileSequenceTrace.is_open())
+                {
+                    cout << "Error: Cannot record the traces (Right folder ?)" << endl;
+                }
+                fileSequenceTrace << imageId << endl;
+                fileSequenceTrace.close();
+
+                // TODO: Only record the main sequence id:
+
                 // Look into the file
                 ifstream fileTracesIn;
                 fileTracesIn.open ("../../Data/Traces/traces.txt");
@@ -286,6 +297,8 @@ void Silhouette::saveCamInfos(string nameVid, const cv::Mat &homographyMatrix)
 
                 Mat mapCoordinate = homographyMatrix * camCoordinate;
                 mapCoordinate /= mapCoordinate.at<double>(2); // Convert to cartesian coordinates
+
+                // TODO: Save
             }
             fileTracePos.release();
         }
