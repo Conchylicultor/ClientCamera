@@ -4,6 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 QMAKE_CXXFLAGS += -std=c++11
+QMAKE_MAKEFILE += build/makefile
 
 SOURCES += src/main.cpp \
     src/camera.cpp \
