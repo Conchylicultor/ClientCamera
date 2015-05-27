@@ -54,7 +54,7 @@ int main()
     {
         cout << "Mode hog active" << endl;
         cv::ocl::DevicesInfo devices;
-        cv::ocl::getOpenCLDevices(devices, ocl::CVCL_DEVICE_TYPE_CPU);
+        cv::ocl::getOpenCLDevices(devices);
         cv::ocl::setDevice(devices[0]);
     }
 
