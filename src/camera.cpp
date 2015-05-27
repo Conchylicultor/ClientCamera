@@ -11,8 +11,10 @@ using namespace std;
 using namespace cv;
 
 int Camera::nbCams = 0;
+ocl::HOGDescriptor *Camera::personDescriptor = nullptr;
 
-Camera::Camera(string pathVid, int clientId, bool record, bool hideGui) :
+Camera::Camera(string pathVid, int clientId, bool modeTrackingHog, bool record, bool hideGui) :
+    hogMode(modeTrackingHog),
     recording(record),
     hidingGui(hideGui),
     success(false),
@@ -20,6 +22,12 @@ Camera::Camera(string pathVid, int clientId, bool record, bool hideGui) :
     spacialLocalisation(false),
     backgroundSubstractor()
 {
+    if(hogMode && personDescriptor == nullptr) // First loading
+    {
+        personDescriptor = new ocl::HOGDescriptor();
+        personDescriptor->setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
+    }
+
     cap.open(pathVid);
 
     if (!cap.isOpened())

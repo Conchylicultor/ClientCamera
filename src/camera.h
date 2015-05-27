@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "opencv2/opencv.hpp"
+#include "opencv2/ocl/ocl.hpp"
 
 #include "silhouette.h"
 
@@ -12,7 +13,7 @@
 class Camera
 {
 public:
-    Camera(std::string pathVid, int clientId, bool record = false, bool hideGui = false);
+    Camera(std::string pathVid, int clientId, bool modeTrackingHog, bool record = false, bool hideGui = false);
     ~Camera();
 
     void grab();
@@ -27,6 +28,7 @@ private:
     cv::VideoCapture cap;
     cv::VideoWriter writer;
 
+    bool hogMode;
     bool recording;
     bool hidingGui;
 
@@ -45,6 +47,7 @@ private:
 
     // Step1: Person detection
     void detectPersons();
+    static cv::ocl::HOGDescriptor *personDescriptor; // Pointer to avoid unecessary loading if ocl not used
     cv::BackgroundSubtractorMOG2 backgroundSubstractor;
     cv::Mat fgMask;
     std::vector<cv::Rect> personsFound;

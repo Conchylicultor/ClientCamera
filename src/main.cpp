@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include "opencv2/opencv.hpp"
+#include "opencv2/ocl/ocl.hpp"
 
 #include "camera.h"
 #include "silhouette.h"
@@ -14,6 +15,7 @@ int main()
 {
     cout << "Loading camera..." << endl;
 
+    int hogMode = 0;
     int recording = 0;
     int hideGui = 0;
     int clientId = 0;
@@ -41,6 +43,19 @@ int main()
     if(!fileConfig.isOpened())
     {
         cout << "Error: No congiguration file" << endl;
+    }
+
+    if(!fileConfig["trackingHog"].empty())
+    {
+        fileConfig["trackingHog"] >> hogMode;
+    }
+
+    if(hogMode)
+    {
+        cout << "Mode hog active" << endl;
+        cv::ocl::DevicesInfo devices;
+        cv::ocl::getOpenCLDevices(devices, ocl::CVCL_DEVICE_TYPE_CPU);
+        cv::ocl::setDevice(devices[0]);
     }
 
     if(!fileConfig["recordingVid"].empty())
@@ -76,7 +91,7 @@ int main()
     cout << "Try opening " << nodeVideoNames.size() << " sources..." << endl;
     for(string currentName : nodeVideoNames)
     {
-        listCam.push_back(new Camera(currentName, clientId, recording, hideGui));
+        listCam.push_back(new Camera(currentName, clientId, hogMode, recording, hideGui));
     }
 
     fileConfig.release();
