@@ -34,7 +34,7 @@ int main()
 
     if(!clientId)
     {
-        cout << "Warning, no client id found, use the default one (0)";
+        cout << "Warning, no client id found, use the default one (0)" << endl;
     }
     Silhouette::setClientId(clientId);
     fileConfig.release();
