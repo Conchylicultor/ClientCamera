@@ -232,70 +232,120 @@ void Camera::loadTransformationMatrix()
 
 void Camera::detectPersons()
 {
+    personsFound.clear();
+
     // Background detection
     backgroundSubstractor(frame, fgMask);
 
-    personsFound.clear();
-
-    // 3 Steps detections
-
-    // First step: with shadow
-    Mat fgWithShadows = fgMask.clone();
-
-    std::vector<std::vector<cv::Point> > contoursWithShadows;
-    cv::erode(fgWithShadows,fgWithShadows,cv::Mat());
-    cv::dilate(fgWithShadows,fgWithShadows,cv::Mat());
-    cv::findContours(fgWithShadows,contoursWithShadows, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-
-    // Second step: without shadow
-    Mat fgWithoutShadows = fgMask; // No clone
-    threshold(fgWithoutShadows, fgWithoutShadows, 254, 255, THRESH_BINARY);
-
-    std::vector<std::vector<cv::Point> > contoursWithoutShadows;
-    cv::erode(fgWithoutShadows,fgWithoutShadows,cv::Mat());
-    cv::dilate(fgWithoutShadows,fgWithoutShadows,cv::Mat());
-    cv::findContours(fgWithoutShadows,contoursWithoutShadows, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-
-    cv::drawContours(fgWithoutShadows,contoursWithoutShadows,-1,cv::Scalar(255), CV_FILLED);
-
-    // Third step: extraction
-    fgWithoutShadows = fgMask.clone();
-
-    for(std::vector<std::vector<cv::Point> >::iterator iter = contoursWithShadows.begin() ; iter != contoursWithShadows.end(); iter++)
+    if(hogMode)
     {
-        Rect captureRect = cv::boundingRect(*iter);
-        // Filters (minimum height and area)
-        // TODO: Aspect ratio to limit false positives ?
-        // Add a perspective coefficient to make the minimum height can be proportional to the place on the camera
-        if(captureRect.height > DETECT_MIN_HEIGHT && cv::contourArea(*iter) > DETECT_MIN_AREA)
+        vector<Rect> hogFound;
+        vector<Rect> hogFoundFiltered;
+
+        // Detection
+        Mat greyFrame;
+        cv::cvtColor(Mat(frame, Rect(0, frame.rows/2, frame.cols, frame.rows/2)), // We only research on the half of the picture
+                     greyFrame,
+                     CV_BGR2GRAY);
+
+        ocl::oclMat frameOcl;
+
+        ocl::resize(ocl::oclMat(greyFrame), frameOcl, greyFrame.size()*2); // We scale X2 to detect smaller people
+        personDescriptor->detectMultiScale(frameOcl, hogFound);
+
+        // Remove the duplicate
+        size_t j;
+        for (size_t i = 0 ; i < hogFound.size() ; i++)
         {
-            // Working only on the small roi
-            Mat persMask(fgWithoutShadows, captureRect);
-
-            Point captureMinTl(persMask.size().width, persMask.size().height);
-            Point captureMinBr(0, 0);// Inverted rect
-            Rect captureCurrentRect;
-
-            // Computing the big bounding box
-            std::vector<std::vector<cv::Point> > contoursPers;
-            cv::findContours(persMask, contoursPers, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-            for(std::vector<std::vector<cv::Point> >::iterator iterContoursPers = contoursPers.begin() ; iterContoursPers != contoursPers.end(); iterContoursPers++)
+            Rect r = hogFound[i];
+            for (j = 0; j<hogFound.size(); j++)
             {
-                captureCurrentRect = cv::boundingRect(*iterContoursPers);
-                captureMinTl.x = std::min(captureMinTl.x, captureCurrentRect.x);
-                captureMinTl.y = std::min(captureMinTl.y, captureCurrentRect.y);
-                captureMinBr.x = std::max(captureMinBr.x, captureCurrentRect.br().x);
-                captureMinBr.y = std::max(captureMinBr.y, captureCurrentRect.br().y);
+                if (j != i && (r & hogFound[j])==r)
+                {
+                    break;
+                }
             }
-
-            // Ultimate filter: without shadow
-            if(captureMinBr.x > DETECT_MIN_FINAL_WIDTH && captureMinBr.y > DETECT_MIN_FINAL_HEIGHT)
+            if (j==hogFound.size())
             {
-                captureRect.x += captureMinTl.x;
-                captureRect.y += captureMinTl.y;
-                captureRect.width  = captureMinBr.x - captureMinTl.x;
-                captureRect.height = captureMinBr.y - captureMinTl.y;
-                personsFound.push_back(captureRect);
+                hogFoundFiltered.push_back(r);
+            }
+        }
+
+        // Extraction
+        for (Rect &r : hogFoundFiltered)
+        {
+            r.x /=2;
+            r.y /=2;
+            r.width /=2;
+            r.height /=2; // Resize
+
+            r.y += frame.rows/2; // Offset (because we have previoulsy cut half of the picture)
+
+            personsFound.push_back(r);
+        }
+    }
+    else
+    {
+        // 3 Steps detections
+
+        // First step: with shadow
+        Mat fgWithShadows = fgMask.clone();
+
+        std::vector<std::vector<cv::Point> > contoursWithShadows;
+        cv::erode(fgWithShadows,fgWithShadows,cv::Mat());
+        cv::dilate(fgWithShadows,fgWithShadows,cv::Mat());
+        cv::findContours(fgWithShadows,contoursWithShadows, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+        // Second step: without shadow
+        Mat fgWithoutShadows = fgMask; // No clone
+        threshold(fgWithoutShadows, fgWithoutShadows, 254, 255, THRESH_BINARY);
+
+        std::vector<std::vector<cv::Point> > contoursWithoutShadows;
+        cv::erode(fgWithoutShadows,fgWithoutShadows,cv::Mat());
+        cv::dilate(fgWithoutShadows,fgWithoutShadows,cv::Mat());
+        cv::findContours(fgWithoutShadows,contoursWithoutShadows, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+        cv::drawContours(fgWithoutShadows,contoursWithoutShadows,-1,cv::Scalar(255), CV_FILLED);
+
+        // Third step: extraction
+        fgWithoutShadows = fgMask.clone();
+
+        for(std::vector<std::vector<cv::Point> >::iterator iter = contoursWithShadows.begin() ; iter != contoursWithShadows.end(); iter++)
+        {
+            Rect captureRect = cv::boundingRect(*iter);
+            // Filters (minimum height and area)
+            // TODO: Aspect ratio to limit false positives ?
+            // Add a perspective coefficient to make the minimum height can be proportional to the place on the camera
+            if(captureRect.height > DETECT_MIN_HEIGHT && cv::contourArea(*iter) > DETECT_MIN_AREA)
+            {
+                // Working only on the small roi
+                Mat persMask(fgWithoutShadows, captureRect);
+
+                Point captureMinTl(persMask.size().width, persMask.size().height);
+                Point captureMinBr(0, 0);// Inverted rect
+                Rect captureCurrentRect;
+
+                // Computing the big bounding box
+                std::vector<std::vector<cv::Point> > contoursPers;
+                cv::findContours(persMask, contoursPers, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+                for(std::vector<std::vector<cv::Point> >::iterator iterContoursPers = contoursPers.begin() ; iterContoursPers != contoursPers.end(); iterContoursPers++)
+                {
+                    captureCurrentRect = cv::boundingRect(*iterContoursPers);
+                    captureMinTl.x = std::min(captureMinTl.x, captureCurrentRect.x);
+                    captureMinTl.y = std::min(captureMinTl.y, captureCurrentRect.y);
+                    captureMinBr.x = std::max(captureMinBr.x, captureCurrentRect.br().x);
+                    captureMinBr.y = std::max(captureMinBr.y, captureCurrentRect.br().y);
+                }
+
+                // Ultimate filter: without shadow
+                if(captureMinBr.x > DETECT_MIN_FINAL_WIDTH && captureMinBr.y > DETECT_MIN_FINAL_HEIGHT)
+                {
+                    captureRect.x += captureMinTl.x;
+                    captureRect.y += captureMinTl.y;
+                    captureRect.width  = captureMinBr.x - captureMinTl.x;
+                    captureRect.height = captureMinBr.y - captureMinTl.y;
+                    personsFound.push_back(captureRect);
+                }
             }
         }
     }
