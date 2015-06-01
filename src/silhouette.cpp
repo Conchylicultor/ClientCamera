@@ -62,7 +62,7 @@ int Silhouette::distanceFrom(const Rect &rect) const
 void Silhouette::addPos(Rect &newPos)
 {
     // Smooth tracking
-    if(previousPos.size() > 0)
+    /*if(previousPos.size() > 0)
     {
         float ratioHeight = static_cast<float>(previousPos.back().height) / static_cast<float>(newPos.height);
         if(ratioHeight > maxRatioHeight)
@@ -89,7 +89,7 @@ void Silhouette::addPos(Rect &newPos)
                 newPos.height = 380 - newPos.y;
             }
         }
-    }
+    }*/
 
     previousPos.push_back(newPos);
 

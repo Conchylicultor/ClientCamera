@@ -47,6 +47,8 @@ private:
 
     // Step1: Person detection
     void detectPersons();
+    void mergeCloseRoi(std::list<cv::Rect> &roiList, cv::Rect &newRect, int margin) const;
+    void extractPersons(const cv::Mat &roi, const cv::Point &roiPos); // Add to the list of persons found the detected persons inside the roi
     static cv::ocl::HOGDescriptor *personDescriptor; // Pointer to avoid unecessary loading if ocl not used
     cv::BackgroundSubtractorMOG2 backgroundSubstractor;
     cv::Mat fgMask;

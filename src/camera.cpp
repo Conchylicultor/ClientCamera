@@ -239,49 +239,47 @@ void Camera::detectPersons()
 
     if(hogMode)
     {
-        vector<Rect> hogFound;
-        vector<Rect> hogFoundFiltered;
+        // Extract the rois (foreground)
 
-        // Detection
-        Mat greyFrame;
-        cv::cvtColor(Mat(frame, Rect(0, frame.rows/2, frame.cols, frame.rows/2)), // We only research on the half of the picture
-                     greyFrame,
-                     CV_BGR2GRAY);
+        // Detect countours
+        Mat fgWithShadows = fgMask.clone();
 
-        ocl::oclMat frameOcl;
+        vector<vector<Point> > contoursWithShadows;
+        cv::erode(fgWithShadows,fgWithShadows,cv::Mat());
+        cv::dilate(fgWithShadows,fgWithShadows,cv::Mat());
+        cv::findContours(fgWithShadows,contoursWithShadows, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-        ocl::resize(ocl::oclMat(greyFrame), frameOcl, greyFrame.size()*2); // We scale X2 to detect smaller people
-        personDescriptor->detectMultiScale(frameOcl, hogFound);
+        // List which contains the regions of interest
+        list<Rect> roiList;
+        list<Rect> roiGroupList;
+        static const int marginPerson = 5; // If two rects are close together
+        static const int marginGroupPerson = 15; // If two persons are close together (avoid same person in two diferent roi)
 
-        // Remove the duplicate
-        size_t j;
-        for (size_t i = 0 ; i < hogFound.size() ; i++)
+        // Merge the persons
+        for(const vector<Point> &countourPoints : contoursWithShadows)
         {
-            Rect r = hogFound[i];
-            for (j = 0; j<hogFound.size(); j++)
+            Rect captureRect = cv::boundingRect(countourPoints);
+
+            mergeCloseRoi(roiList, captureRect, marginPerson);
+        }
+
+        // Merge the groups
+        for(Rect &rect : roiList)
+        {
+            // Filter noize (small size)
+            if(rect.height > 40 && rect.width > 10)
             {
-                if (j != i && (r & hogFound[j])==r)
-                {
-                    break;
-                }
-            }
-            if (j==hogFound.size())
-            {
-                hogFoundFiltered.push_back(r);
+                mergeCloseRoi(roiGroupList, rect, marginGroupPerson);
             }
         }
 
-        // Extraction
-        for (Rect &r : hogFoundFiltered)
+        for(Rect &roi : roiGroupList)
         {
-            r.x /=2;
-            r.y /=2;
-            r.width /=2;
-            r.height /=2; // Resize
+            roi = Rect(roi.tl() - Point(marginGroupPerson, marginGroupPerson),
+                       roi.br() + Point(marginGroupPerson, marginGroupPerson)); // Add margins
+            roi = roi & Rect(0, 0, frame.cols-1, frame.rows-1); // In case of outbreak
 
-            r.y += frame.rows/2; // Offset (because we have previoulsy cut half of the picture)
-
-            personsFound.push_back(r);
+            extractPersons(frame(roi), roi.tl()); // Detect persons if possible
         }
     }
     else
@@ -310,7 +308,7 @@ void Camera::detectPersons()
         // Third step: extraction
         fgWithoutShadows = fgMask.clone();
 
-        for(std::vector<std::vector<cv::Point> >::iterator iter = contoursWithShadows.begin() ; iter != contoursWithShadows.end(); iter++)
+        for(std::vector<std::vector<cv::Point>>::iterator iter = contoursWithShadows.begin() ; iter != contoursWithShadows.end(); iter++)
         {
             Rect captureRect = cv::boundingRect(*iter);
             // Filters (minimum height and area)
@@ -348,6 +346,82 @@ void Camera::detectPersons()
                 }
             }
         }
+    }
+}
+
+void Camera::mergeCloseRoi(std::list<Rect> &roiList, Rect &newRect, int margin) const
+{
+    // Add margins
+    Rect rectWithMargin(newRect.tl() - Point(margin, margin),
+                        newRect.br() + Point(margin, margin));
+
+    // Delete all rect which are merged
+    roiList.remove_if(
+        [&newRect, &rectWithMargin](Rect &previousRect)
+        {
+            if((rectWithMargin & previousRect) != Rect()) // If close enough (intersection not null)
+            {
+                // We merge the two rects
+                newRect = newRect | previousRect;
+
+                return true; // Remove the rect
+            }
+            return false;
+        }
+    );
+
+    // Add the new merged rect
+    roiList.push_back(newRect);
+}
+
+void Camera::extractPersons(const Mat &roi, const Point &roiPos)
+{
+    static const int scaleFactor = 2;
+    vector<Rect> hogFound;
+    vector<Rect> hogFoundFiltered;
+
+    // Detection
+    Mat greyFrame;
+    ocl::oclMat oclFrame;
+
+    cv::cvtColor(roi, greyFrame, CV_BGR2GRAY); // Keep only one channel
+    ocl::resize(ocl::oclMat(greyFrame), oclFrame, greyFrame.size()*scaleFactor); // We scale X2 to detect smaller people
+
+    if(oclFrame.rows > 128 && oclFrame.cols > 64) // Minimum detection size
+    {
+        personDescriptor->detectMultiScale(oclFrame, hogFound);
+    }
+
+    // Remove the duplicate (code from internet so usefull ?)
+    size_t j;
+    for (size_t i = 0 ; i < hogFound.size() ; i++)
+    {
+        Rect r = hogFound[i];
+        for (j = 0; j<hogFound.size(); j++)
+        {
+            if (j != i && (r & hogFound[j])==r)
+            {
+                break;
+            }
+        }
+        if (j==hogFound.size())
+        {
+            hogFoundFiltered.push_back(r);
+        }
+    }
+
+    // Extraction
+    for (Rect &r : hogFoundFiltered)
+    {
+        r.x /= scaleFactor;
+        r.y /= scaleFactor;
+        r.width /= scaleFactor;
+        r.height /= scaleFactor; // Resize
+
+        r.x += roiPos.x;
+        r.y += roiPos.y; // Offset of the roi
+
+        personsFound.push_back(r);
     }
 }
 
