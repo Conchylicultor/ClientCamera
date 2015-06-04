@@ -45,7 +45,7 @@ private:
     int gostLife;
 
     // ----- For save -----
-    std::list< std::pair<cv::Mat, cv::Mat> > extFrames;
+    std::vector< std::pair<cv::Mat, cv::Mat> > extFrames;
     std::chrono::system_clock::time_point beginTime;
 };
 

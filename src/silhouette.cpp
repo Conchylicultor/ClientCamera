@@ -7,7 +7,8 @@ using namespace std;
 using namespace cv;
 
 // We only save if the person has been recorded more than 5 times (frames)
-const int minToSave = 5;
+const int nbFilterFirstFrame = 3; // The first frames are usually not very good
+const int minToSave = 6;
 
 // Limit ratio for smooth tracking
 const float maxRatioHeight = 1.1;
@@ -61,7 +62,7 @@ int Silhouette::distanceFrom(const Rect &rect) const
 
 void Silhouette::addPos(Rect &newPos)
 {
-    // Smooth tracking
+    // Smooth tracking (hack if not in hog mode)
     /*if(previousPos.size() > 0)
     {
         float ratioHeight = static_cast<float>(previousPos.back().height) / static_cast<float>(newPos.height);
@@ -107,97 +108,90 @@ void Silhouette::plot(Mat &frame)
 
 void Silhouette::addFrame(Mat &frame, Mat &fgMask, bool useHomographyMatrix)
 {
-    // (?) Other conditions to extract the features ?
     Mat persImg  = frame (previousPos.back());
     Mat persMask = fgMask(previousPos.back());
 
-    // Save on disk (for built the database)
-    if(recordTrace)
-    {
-        // Save on disk >> For the database
-        extFrames.push_back(pair<Mat, Mat>(persImg, persMask));
+    extFrames.push_back(pair<Mat, Mat>(persImg, persMask)); // We always add the image to the list (but we don't save it if it is filtered)
 
-        // We only save if the person has been recorded more than 10 times (frames)
-        if(extFrames.size() > minToSave)
+    // Save on disk (for built the database)
+    // We only save if the person has been recorded more than x times (frames)
+    if(recordTrace && extFrames.size() >= minToSave)
+    {
+        // Compute image id
+        string sequenceId  = std::to_string(clientId) + "_" + std::to_string(id); // Id of the complete sequence
+
+        // The sequence image id are recorded on a separate file
+        ofstream fileSequenceTrace("../../Data/Traces/" + sequenceId + "_list.txt", ios_base::app);
+        if(!fileSequenceTrace.is_open())
         {
-            // Filter: aspect ratio
-            if(extFrames.back().first.rows / extFrames.back().first.cols > 1.4)
+            cout << "Error: Cannot record the traces (Right folder ?)" << endl;
+        }
+
+        // Function to save one image (with its mask and update the sequence image id list)
+        auto fuctionRecordId = [&fileSequenceTrace] (const string &imageIdToSave, const pair<Mat, Mat> &imagesToSave) -> void {
+
+            // Filter: aspect ratio (for non hog mod)
+            // TODO: Add also a filter if not enough foreground pixel
+            // TODO: Add also a filter if foreground not in center of picture ? (person probably cropped)
+            bool filter = true;
+            if(imagesToSave.first.rows / imagesToSave.first.cols > 1.4)
             {
-                // Compute image id
-                string sequenceId  = std::to_string(clientId) + "_" + std::to_string(id); // Id of the complete sequence
-                string imageId = sequenceId + "_" + std::to_string(extFrames.size()); // Id of the image inside the sequence
+                filter = false;
+            }
+
+            if(!filter)
+            {
+                // Save sequence images id
+                fileSequenceTrace << imageIdToSave << endl;
 
                 // Save image
-                imwrite("../../Data/Traces/" + imageId + ".png", extFrames.back().first);
-                imwrite("../../Data/Traces/" + imageId + "_mask.png", extFrames.back().second);
+                imwrite("../../Data/Traces/" + imageIdToSave + ".png", imagesToSave.first);
+                imwrite("../../Data/Traces/" + imageIdToSave + "_mask.png", imagesToSave.second);
+            }
 
-                list<string> contentTraces;
+        };
 
-                // We save all the sequences
-                ofstream fileSequenceTrace("../../Data/Traces/" + sequenceId + "_list.txt", ios_base::app);
-                if(!fileSequenceTrace.is_open())
-                {
-                    cout << "Error: Cannot record the traces (Right folder ?)" << endl;
-                }
-                fileSequenceTrace << imageId << endl;
-                fileSequenceTrace.close();
+        // First time, we save all previous frame
+        if(extFrames.size() == minToSave)
+        {
+            // Save the sequence id
 
-                // TODO: Only record the main sequence id:
+            ofstream fileTracesOut;
+            fileTracesOut.open ("../../Data/Traces/traces.txt", ios_base::app);
+            if(!fileTracesOut.is_open())
+            {
+                cout << "Error: No file trace out" << endl;
+            }
+            fileTracesOut << "----- " + sequenceId + " -----" << endl;
+            fileTracesOut << sequenceId + "_cam" << endl;
+            if(useHomographyMatrix)
+            {
+                fileTracesOut << sequenceId + "_pos" << endl;
+            }
+            fileTracesOut.close();
 
-                // Look into the file
-                ifstream fileTracesIn;
-                fileTracesIn.open ("../../Data/Traces/traces.txt");
-                if(fileTracesIn.is_open()) // For the first sequence, the file may not exist
-                {
-                    // Read entire file
-                    for(string line ; std::getline(fileTracesIn, line) ; )
-                    {
-                        contentTraces.push_back(line);
-                    }
-                    fileTracesIn.close();
-                }
+            // Save all previous frame
 
-                // Add content: insert lines
-                string titleId = "----- " + sequenceId + " -----";
-                list<string>::iterator iter = std::find(contentTraces.begin(), contentTraces.end(), titleId);
-
-                if(iter == contentTraces.end())
-                {
-                    contentTraces.push_back(titleId);
-                    contentTraces.push_back(imageId);
-                    contentTraces.push_back(sequenceId + "_cam");
-                    if(useHomographyMatrix)
-                    {
-                        contentTraces.push_back(sequenceId + "_pos");
-                    }
-                    // The camera id information is added in an annex file when the sequence is finished
-                }
-                else
-                {
-                    iter++;
-                    contentTraces.insert(iter, imageId);
-                }
-
-                // Write file
-                ofstream fileTracesOut;
-                fileTracesOut.open ("../../Data/Traces/traces.txt");
-                if(!fileTracesOut.is_open())
-                {
-                    cout << "Error: No file trace out" << endl;
-                }
-                for(string line : contentTraces)
-                {
-                    fileTracesOut << line << endl;
-                }
-                fileTracesOut.close();
+            for(int i = nbFilterFirstFrame ; i < extFrames.size() ; ++i)
+            {
+                string imageId = sequenceId + "_" + std::to_string(i); // Index start at 0
+                fuctionRecordId(imageId, extFrames.at(i));
             }
         }
+        // The next frames
+        else if(extFrames.size() > minToSave)
+        {
+            string imageId = sequenceId + "_" + std::to_string(extFrames.size()-1); // Id of the image inside the sequence
+            fuctionRecordId(imageId, extFrames.back());
+        }
+
+        fileSequenceTrace.close();
     }
 }
 
 void Silhouette::saveCamInfos(string nameVid, const cv::Mat &homographyMatrix)
 {
-    if(recordTrace && extFrames.size() > (minToSave+1)) // Filter the false positive
+    if(recordTrace && extFrames.size() >= minToSave) // Filter the false positive
     {
         // Compute the needed informations
 
