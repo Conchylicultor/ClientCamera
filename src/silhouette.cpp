@@ -172,7 +172,7 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask, bool useHomographyMatrix)
 
             // Save all previous frame
 
-            for(int i = nbFilterFirstFrame ; i < extFrames.size() ; ++i)
+            for(size_t i = nbFilterFirstFrame ; i < extFrames.size() ; ++i)
             {
                 string imageId = sequenceId + "_" + std::to_string(i); // Index start at 0
                 fuctionRecordId(imageId, extFrames.at(i));
