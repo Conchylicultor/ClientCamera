@@ -138,7 +138,7 @@ void Camera::loadTransformationMatrix()
 
     if(!bgImg.data || !mapImg.data)
     {
-        cout << "Warning: cannot load the image for trasformation matrix" << nbCams << endl;
+        cout << "Warning: cannot load the image for transformation matrix " << nbCams << endl;
         spacialLocalisation = false;
         return;
     }
@@ -184,7 +184,7 @@ void Camera::loadTransformationMatrix()
 
     if(compteurDots != 4)
     {
-        cout << "Error: Wrong number of dots for computing trasformation matrix (in background)" << endl;
+        cout << "Error: Wrong number of dots for computing trasformation matrix (in background): " << compteurDots << endl;
         return;
     }
 
@@ -221,7 +221,7 @@ void Camera::loadTransformationMatrix()
 
     if(compteurDots != 4)
     {
-        cout << "Error: Wrong number of dots for computing trasformation matrix (in map)" << endl;
+        cout << "Error: Wrong number of dots for computing trasformation matrix (in map): " << compteurDots << endl;
         return;
     }
 

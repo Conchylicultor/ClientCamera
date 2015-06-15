@@ -282,9 +282,21 @@ void Silhouette::saveCamInfos(string nameVid, const cv::Mat &homographyMatrix)
         // Homography computation
         if(homographyMatrix.data)
         {
+            Mat tracesMap = imread("../../Data/Traces/map.png");
+            if(!tracesMap.data)
+            {
+                tracesMap = imread("../calibration/map.png");
+                if(!tracesMap.data)
+                {
+                    cout << "Warning: no camera map, cannot record the trace map" << endl;
+                    return;
+                }
+            }
+
             FileStorage fileTracePos("../../Data/Traces/" + std::to_string(clientId) + "_" + std::to_string(id) + "_pos.yml", FileStorage::WRITE);
             for(const Rect &currentPos : previousPos)
             {
+                // Compute coordinate
                 Mat camCoordinate = Mat::ones(3,1, CV_64F);
                 camCoordinate.at<double>(0) = currentPos.br().x - currentPos.width/2;
                 camCoordinate.at<double>(1) = currentPos.br().y;
@@ -292,9 +304,14 @@ void Silhouette::saveCamInfos(string nameVid, const cv::Mat &homographyMatrix)
                 Mat mapCoordinate = homographyMatrix * camCoordinate;
                 mapCoordinate /= mapCoordinate.at<double>(2); // Convert to cartesian coordinates
 
-                // TODO: Save
+                // Plot the path on the map
+                circle(tracesMap, Point(mapCoordinate.at<double>(0), mapCoordinate.at<double>(1)), 1, color);
+
+                // TODO: Save on file
             }
             fileTracePos.release();
+
+            imwrite("../../Data/Traces/map.png", tracesMap);
         }
     }
 }
