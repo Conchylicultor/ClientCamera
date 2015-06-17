@@ -293,7 +293,7 @@ void Silhouette::saveCamInfos(string nameVid, const cv::Mat &homographyMatrix)
                 }
             }
 
-            FileStorage fileTracePos("../../Data/Traces/" + std::to_string(clientId) + "_" + std::to_string(id) + "_pos.yml", FileStorage::WRITE);
+            ofstream fileTracePos("../../Data/Traces/" + std::to_string(clientId) + "_" + std::to_string(id) + "_pos.txt");
             for(const Rect &currentPos : previousPos)
             {
                 // Compute coordinate
@@ -307,9 +307,10 @@ void Silhouette::saveCamInfos(string nameVid, const cv::Mat &homographyMatrix)
                 // Plot the path on the map
                 circle(tracesMap, Point(mapCoordinate.at<double>(0), mapCoordinate.at<double>(1)), 1, color);
 
-                // TODO: Save on file
+                // Save on file
+                fileTracePos << mapCoordinate.at<double>(0) << " " << mapCoordinate.at<double>(1) << endl;
             }
-            fileTracePos.release();
+            fileTracePos.close();
 
             imwrite("../../Data/Traces/map.png", tracesMap);
         }
