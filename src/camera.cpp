@@ -13,6 +13,10 @@ using namespace cv;
 int Camera::nbCams = 0;
 ocl::HOGDescriptor *Camera::personDescriptor = nullptr;
 
+std::list<MapDot> Camera::mapDotList;
+cv::Mat Camera::mapBackground;
+cv::VideoWriter Camera::mapTracesWriter;
+
 Camera::Camera(string pathVid, int clientId, bool modeTrackingHog, bool record, bool hideGui) :
     hogMode(modeTrackingHog),
     recording(record),
@@ -228,6 +232,44 @@ void Camera::loadTransformationMatrix()
     homographyMatrix = findHomography(homographyPointsSrc, homographyPointsDest);
 
     spacialLocalisation = true;
+}
+
+void Camera::initMapTraces()
+{
+    mapBackground = imread("../calibration/map.png");
+    if(!mapBackground.data)
+    {
+        cout << "Error: Cannot load map background"<< endl;
+    }
+
+    mapTracesWriter.open("../../Data/Traces/traces.avi", CV_FOURCC('I','4','2','0'), 20, mapBackground.size());
+    if(!mapTracesWriter.isOpened())
+    {
+        cout << "Error: Pb recording with the map traces"<< endl;
+    }
+}
+
+void Camera::updateMapTraces()
+{
+    // Uncomment to record the trace
+    Mat currentFrame;// = mapBackground.clone(); // Uncomment
+
+    mapDotList.remove_if([&currentFrame](MapDot &currentDot) -> bool {
+        currentDot.update();
+        if(currentDot.lifetime <= 0)
+        {
+            return true;
+        }
+        // circle(currentFrame, currentDot.position, 1, currentDot.color); // Uncomment
+        return false;
+    });
+
+    // mapTracesWriter << currentFrame; // Uncomment
+}
+
+void Camera::closeMapTraces()
+{
+    mapTracesWriter.release();
 }
 
 void Camera::detectPersons()
@@ -530,7 +572,7 @@ void Camera::computeFeatures()
         if((*iter)->getUpdated())// The silhouette is present on the current frame
         {
             // TODO: Other conditions to extract the features ?
-            (*iter)->addFrame(frame, fgMask, spacialLocalisation);
+            (*iter)->addFrame(frame, fgMask, spacialLocalisation, homographyMatrix, mapDotList);
         }
     }
 }

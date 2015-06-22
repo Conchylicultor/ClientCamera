@@ -106,7 +106,7 @@ void Silhouette::plot(Mat &frame)
     rectangle(frame, previousPos.back(), color, 2);
 }
 
-void Silhouette::addFrame(Mat &frame, Mat &fgMask, bool useHomographyMatrix)
+void Silhouette::addFrame(Mat &frame, Mat &fgMask, bool useHomographyMatrix, const Mat &homographyMatrix, list<MapDot> &mapDotList)
 {
     Mat persImg  = frame (previousPos.back());
     Mat persMask = fgMask(previousPos.back());
@@ -186,6 +186,23 @@ void Silhouette::addFrame(Mat &frame, Mat &fgMask, bool useHomographyMatrix)
         }
 
         fileSequenceTrace.close();
+
+        // Compute homography
+
+        if(homographyMatrix.data)
+        {
+            // Compute coordinate
+            Mat camCoordinate = Mat::ones(3,1, CV_64F);
+            const Rect &currentPos = previousPos.back();
+            camCoordinate.at<double>(0) = currentPos.br().x - currentPos.width/2;
+            camCoordinate.at<double>(1) = currentPos.br().y;
+
+            Mat mapCoordinate = homographyMatrix * camCoordinate;
+            mapCoordinate /= mapCoordinate.at<double>(2); // Convert to cartesian coordinates
+
+            // Plot the path on the map
+            mapDotList.push_back(MapDot(Point(mapCoordinate.at<double>(0), mapCoordinate.at<double>(1)), color));
+        }
     }
 }
 

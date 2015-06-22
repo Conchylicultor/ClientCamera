@@ -6,6 +6,26 @@
 #include <vector>
 #include "opencv2/opencv.hpp"
 
+
+struct MapDot
+{
+    MapDot(const cv::Point &pos, const cv::Scalar &color) :
+        lifetime(40),
+        color(color),
+        position(pos)
+    {}
+
+    void update()
+    {
+        lifetime--;
+        color[3] = (1.0*lifetime)/40.0;
+    }
+
+    int lifetime;
+    cv::Scalar color;
+    cv::Point position;
+};
+
 class Silhouette
 {
 public:
@@ -17,7 +37,7 @@ public:
     int distanceFrom(const cv::Rect &rect) const;
     void addPos(cv::Rect &newPos);
     void plot(cv::Mat &frame);
-    void addFrame(cv::Mat &frame, cv::Mat &fgMask, bool useHomographyMatrix); // And save eventually
+    void addFrame(cv::Mat &frame, cv::Mat &fgMask, bool useHomographyMatrix, const cv::Mat &homographyMatrix, std::list<MapDot> &mapDotList); // And save eventually
     void saveCamInfos(std::string nameVid, const cv::Mat &homographyMatrix);
 
     bool getUpdated() const;

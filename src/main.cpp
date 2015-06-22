@@ -96,14 +96,7 @@ int main()
 
     fileConfig.release();
 
-    // Clear the buffer of each cam
-    /*for(int i = 0 ; i < 150 ; ++i)
-    {
-        for(int j = 0 ; j < listCam.size() ; ++j)
-        {
-            listCam.at(j)->grab();
-        }
-    }*/
+    Camera::initMapTraces();
 
     chrono::steady_clock::time_point beginTime = chrono::steady_clock::now();
     while(1)
@@ -118,6 +111,8 @@ int main()
         {
             listCam.at(i)->play();
         }
+
+        Camera::updateMapTraces();
 
         // Events
         char key = waitKey(50);
@@ -139,6 +134,8 @@ int main()
             break; // Exit
         }
     }
+
+    Camera::closeMapTraces();
 
     for(size_t i = 0 ; i < listCam.size() ; ++i)
     {

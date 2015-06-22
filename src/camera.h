@@ -21,6 +21,11 @@ public:
 
     void togglePause();
 
+    // For recording the video of the map traces
+    static void initMapTraces(); // Load recording
+    static void updateMapTraces(); // Record
+    static void closeMapTraces(); // End recording
+
 private:
     static int nbCams;
     std::string nameVid;
@@ -42,6 +47,11 @@ private:
     cv::Mat homographyMatrix;
 
     void loadTransformationMatrix();
+
+    // For recording the video of the map traces
+    static std::list<MapDot> mapDotList;
+    static cv::Mat mapBackground;
+    static cv::VideoWriter mapTracesWriter;
 
     // ----- Pipeline -----
 
